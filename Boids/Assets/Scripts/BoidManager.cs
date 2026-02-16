@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class BoidManager : MonoBehaviour{
+public partial class BoidManager : MonoBehaviour{
     int numBoids;
     GameObject[] boids;
+    Vector3[] boidPositions;
+    GameObject[] currNeighbors;
     [SerializeField] GameObject boidPrefab;
     [SerializeField] GameObject simulationBounds;
 
@@ -15,6 +18,7 @@ public class BoidManager : MonoBehaviour{
         numBoids = 10;
         boids = new GameObject[numBoids];
         boidPool = new List<GameObject>();
+        currNeighbors = new GameObject[numBoids - 1];
         Vector3 simScale = simulationBounds.transform.localScale;
         width = simScale.x;
         height = simScale.y;
@@ -33,9 +37,9 @@ public class BoidManager : MonoBehaviour{
     (Vector3, Quaternion) getRandPosRot() {
         float halfWidth = width / 2;
         float halfHeight = height / 2;
-        float posX = halfWidth - Random.Range(0,width);
-        float posZ = halfHeight - Random.Range(0,height);
-        float randRot = Random.Range(0,359);
+        float posX = halfWidth - UnityEngine.Random.Range(0,width);
+        float posZ = halfHeight - UnityEngine.Random.Range(0,height);
+        float randRot = UnityEngine.Random.Range(0,359);
         Vector3 pos = new Vector3(posX,1,posZ);
         Quaternion rotation = Quaternion.Euler(0,randRot,0);
         return(pos,rotation);
@@ -53,6 +57,7 @@ public class BoidManager : MonoBehaviour{
                 boid.SetActive(true);
                 boidPool.RemoveAt(lastElement);
                 boids[i] = boid;
+                boidPositions[i] = boid.transform.position;
                 (Vector3 pos, Quaternion rot) = getRandPosRot();
                 Transform boidTrans = boid.transform;
                 boidTrans.position = pos;
@@ -65,8 +70,9 @@ public class BoidManager : MonoBehaviour{
             (Vector3 pos, Quaternion rot) = getRandPosRot();
             GameObject boid = Instantiate(boidPrefab,pos,rot);
             boids[i] = boid;
+            boidPositions[i] = boid.transform.position;
         }
-
+        
     }
 
     void clearBoids() {
@@ -75,5 +81,22 @@ public class BoidManager : MonoBehaviour{
             boids[i].SetActive(false);      
             boids[i] = null;
         }
-    }    
+    }
+
+    public (int, GameObject[]) GetBoidNeighborsBF(int index, float radius){
+       Span<Vector3> positions = boidPositions;
+
+        Vector3 currPos = positions[index];
+        int numNeighbors = 0;
+        float radiusSq = radius * radius;
+        for(int i = 0; i < positions.Length; i++) {
+            if(i == index) continue;
+            Vector3 distance = currPos - positions[i];
+            if(distance.sqrMagnitude <= radiusSq) {
+                currNeighbors[numNeighbors] = boids[i];
+                numNeighbors++;
+            }
+        }
+        return (numNeighbors, currNeighbors);
+    }
 }
