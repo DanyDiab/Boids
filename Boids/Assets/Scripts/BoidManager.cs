@@ -5,20 +5,19 @@ using UnityEngine.InputSystem;
 
 public partial class BoidManager : MonoBehaviour{
     int numBoids;
-    GameObject[] boids;
-    Vector3[] boidPositions;
-    GameObject[] currNeighbors;
+    Boid[] boids;
     [SerializeField] GameObject boidPrefab;
     [SerializeField] GameObject simulationBounds;
+    BFNeighborSearch search;
 
-    List<GameObject> boidPool;
+    List<Boid> boidPool;
     float width;
     float height;
     void Start(){
-        numBoids = 10;
-        boids = new GameObject[numBoids];
-        boidPool = new List<GameObject>();
-        currNeighbors = new GameObject[numBoids - 1];
+        numBoids = 1000;
+        boids = new Boid[numBoids];
+        boidPool = new List<Boid>();
+        
         Vector3 simScale = simulationBounds.transform.localScale;
         width = simScale.x;
         height = simScale.y;
@@ -48,55 +47,45 @@ public partial class BoidManager : MonoBehaviour{
     void spawnBoids() {
 
         int poolCount = boidPool.Count;
-        int maxGrab = Mathf.Min(numBoids,poolCount);
-
-        if(maxGrab > 0) {
+        int numGrabFromPool = Mathf.Min(numBoids,poolCount);
+        search = new BFNeighborSearch(numBoids);
+        if(numGrabFromPool > 0) {
             int lastElement = boidPool.Count - 1;
-            for(int i = 0; i < maxGrab; i++) {
-                GameObject boid = boidPool[lastElement];
-                boid.SetActive(true);
+            for(int i = 0; i < numGrabFromPool; i++) {
+                Boid boid = boidPool[lastElement];
+                boid.init(i,boid.gameObject,search);
                 boidPool.RemoveAt(lastElement);
                 boids[i] = boid;
-                boidPositions[i] = boid.transform.position;
                 (Vector3 pos, Quaternion rot) = getRandPosRot();
                 Transform boidTrans = boid.transform;
                 boidTrans.position = pos;
                 boidTrans.rotation = rot;
                 lastElement--;
+
             }
         }
 
-        for(int i = maxGrab; i < numBoids; i++) {
+        for(int i = numGrabFromPool; i < numBoids; i++) {
             (Vector3 pos, Quaternion rot) = getRandPosRot();
-            GameObject boid = Instantiate(boidPrefab,pos,rot);
+            GameObject boidGO = Instantiate(boidPrefab,pos,rot);
+            Boid boid = boidGO.GetComponent<Boid>();
+            boid.init(i,boidGO, search);
             boids[i] = boid;
-            boidPositions[i] = boid.transform.position;
         }
+
+       
         
     }
 
     void clearBoids() {
         boidPool.AddRange(boids);
         for(int i = 0; i < numBoids; i++) {
-            boids[i].SetActive(false);      
+            
+            if(boids[i] == null) continue;
+            boids[i].disable();   
             boids[i] = null;
         }
     }
 
-    public (int, GameObject[]) GetBoidNeighborsBF(int index, float radius){
-       Span<Vector3> positions = boidPositions;
 
-        Vector3 currPos = positions[index];
-        int numNeighbors = 0;
-        float radiusSq = radius * radius;
-        for(int i = 0; i < positions.Length; i++) {
-            if(i == index) continue;
-            Vector3 distance = currPos - positions[i];
-            if(distance.sqrMagnitude <= radiusSq) {
-                currNeighbors[numNeighbors] = boids[i];
-                numNeighbors++;
-            }
-        }
-        return (numNeighbors, currNeighbors);
-    }
 }
