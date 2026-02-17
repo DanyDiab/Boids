@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,7 +13,7 @@ public partial class BoidManager : MonoBehaviour{
     float width;
     float height;
     void Start(){
-        numBoids = 1000;
+        numBoids = 500;
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
         
@@ -59,7 +58,6 @@ public partial class BoidManager : MonoBehaviour{
                 (Vector3 pos, Quaternion rot) = getRandPosRot();
                 Transform boidTrans = boid.transform;
                 boidTrans.position = pos;
-                boidTrans.rotation = rot;
                 lastElement--;
 
             }
@@ -67,7 +65,7 @@ public partial class BoidManager : MonoBehaviour{
 
         for(int i = numGrabFromPool; i < numBoids; i++) {
             (Vector3 pos, Quaternion rot) = getRandPosRot();
-            GameObject boidGO = Instantiate(boidPrefab,pos,rot);
+            GameObject boidGO = Instantiate(boidPrefab,pos,Quaternion.identity);
             Boid boid = boidGO.GetComponent<Boid>();
             boid.init(i,boidGO, search);
             boids[i] = boid;
