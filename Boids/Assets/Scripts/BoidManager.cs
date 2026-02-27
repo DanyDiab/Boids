@@ -82,8 +82,4 @@ public partial class BoidManager : MonoBehaviour{
             boids[i] = null;
         }
     }
-
-
-
-
 }

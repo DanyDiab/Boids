@@ -12,6 +12,7 @@ public class Boid : MonoBehaviour{
     float alignmentForceWeight;
     float cohesionForceWeight;
     float simBoundRadius;
+    float outsideTimer;
 
     IBoidSearch search;
     Vector3 currHeading;
@@ -31,6 +32,8 @@ public class Boid : MonoBehaviour{
         CurrHeading = new Vector3(rand.x,0,rand.y);
         currHeading = Vector3.back;
         this.boidInfo = boidInfo;
+
+        outsideTimer = 0;
         speed = boidInfo.Speed;
         seperationRadius = boidInfo.SeparationRadius;
         alignmentRadius = boidInfo.AlignmentRadius;
@@ -105,10 +108,13 @@ public class Boid : MonoBehaviour{
         float distToCenter = myPos.magnitude;
 
         if(!isInSim(myPos)) {
-            float edgeWeight = distToCenter / simBoundRadius;
             centerForce = -myPos;
             centerForce.y = 0;
-            finalForce += centerForce * (edgeWeight * .1f);
+            finalForce += centerForce * (outsideTimer * .1f);
+            outsideTimer += Time.deltaTime;
+        }
+        else {
+            outsideTimer = 0;
         }
 
         finalForce += totalSeperation.normalized * seperationForceWeight;
