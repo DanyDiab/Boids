@@ -6,7 +6,6 @@ public class BFNeighborSearch : IBoidSearch {
     Boid[] currNeighbors;
     Boid[] boids;
     int numBoids;
-
     
     public BFNeighborSearch(int numBoids) {
         this.numBoids = numBoids;

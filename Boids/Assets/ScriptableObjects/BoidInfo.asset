@@ -19,3 +19,4 @@ MonoBehaviour:
   separationForceWeight: 2
   alignmentForceWeight: 2
   cohesionForceWeight: 1
+  centerForceWeight: 0.1
