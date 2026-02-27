@@ -11,9 +11,6 @@ public class Boid : MonoBehaviour{
     [SerializeField] float alignmentForceWeight;
     [SerializeField] float cohesionForceWeight;
 
-
-
-
     IBoidSearch search;
     Vector3 currHeading;
 
@@ -21,23 +18,23 @@ public class Boid : MonoBehaviour{
     GameObject boid; 
 
 
-    public void init(int index, GameObject boid, IBoidSearch search) {
-        speed = 10;
+    public void init(int index, GameObject boid, IBoidSearch search, BoidInfo boidInfo) {
         boid.SetActive(true);
+        search.AddBoid(index,boid.transform.position,this);
         myIndex = index;
         this.boid = boid;
         this.search = search;
-        search.AddBoid(index,boid.transform.position,this);
-        currHeading = Vector3.back;
-        seperationRadius = 5;
-        alignmentRadius = 6;
-        cohesionRadius = 20;
         Vector2 rand = UnityEngine.Random.insideUnitCircle;
         CurrHeading = new Vector3(rand.x,0,rand.y);
+        currHeading = Vector3.back;
 
-        seperationForceWeight = 2f;
-        alignmentForceWeight = 2f;
-        cohesionForceWeight = 1f;
+        speed = boidInfo.Speed;
+        seperationRadius = boidInfo.SeparationRadius;
+        alignmentRadius = boidInfo.AlignmentRadius;
+        cohesionRadius = boidInfo.CohesionRadius;
+        seperationForceWeight = boidInfo.SeparationForceWeight;
+        alignmentForceWeight = boidInfo.AlignmentForceWeight;
+        cohesionForceWeight = boidInfo.CohesionForceWeight;
     }
 
     public void disable() {
@@ -93,12 +90,14 @@ public class Boid : MonoBehaviour{
             if(dist * dist <= cohesionRadius * cohesionRadius) {
                totalCohesion += neighborPos;
             }
+
         }
         
         totalCohesion /= numNeighbors;
         totalCohesion.y = 1;
         totalCohesion = (totalCohesion - myPos).normalized;
         Vector3 finalForce = Vector3.zero;
+
         finalForce += totalSeperation.normalized * seperationForceWeight;
         finalForce += totalAlignment.normalized * alignmentForceWeight;
         finalForce += totalCohesion.normalized * cohesionForceWeight;

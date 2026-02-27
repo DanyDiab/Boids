@@ -12,6 +12,8 @@ public partial class BoidManager : MonoBehaviour{
     List<Boid> boidPool;
     float width;
     float height;
+    [SerializeField] BoidInfo boidInfo;
+
     void Start(){
         numBoids = 500;
         boids = new Boid[numBoids];
@@ -52,14 +54,13 @@ public partial class BoidManager : MonoBehaviour{
             int lastElement = boidPool.Count - 1;
             for(int i = 0; i < numGrabFromPool; i++) {
                 Boid boid = boidPool[lastElement];
-                boid.init(i,boid.gameObject,search);
+                boid.init(i,boid.gameObject,search, boidInfo);
                 boidPool.RemoveAt(lastElement);
                 boids[i] = boid;
                 (Vector3 pos, Quaternion rot) = getRandPosRot();
                 Transform boidTrans = boid.transform;
                 boidTrans.position = pos;
                 lastElement--;
-
             }
         }
 
@@ -67,12 +68,9 @@ public partial class BoidManager : MonoBehaviour{
             (Vector3 pos, Quaternion rot) = getRandPosRot();
             GameObject boidGO = Instantiate(boidPrefab,pos,Quaternion.identity);
             Boid boid = boidGO.GetComponent<Boid>();
-            boid.init(i,boidGO, search);
+            boid.init(i,boidGO, search, boidInfo);
             boids[i] = boid;
         }
-
-       
-        
     }
 
     void clearBoids() {
