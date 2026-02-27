@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public partial class BoidManager : MonoBehaviour{
+public class BoidManager : MonoBehaviour{
     int numBoids;
     Boid[] boids;
     [SerializeField] GameObject boidPrefab;
@@ -17,7 +17,6 @@ public partial class BoidManager : MonoBehaviour{
         numBoids = 500;
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
-        
         Vector3 simScale = simulationBounds.transform.localScale;
         width = simScale.x;
         height = simScale.y;
@@ -76,7 +75,6 @@ public partial class BoidManager : MonoBehaviour{
     void clearBoids() {
         boidPool.AddRange(boids);
         for(int i = 0; i < numBoids; i++) {
-            
             if(boids[i] == null) continue;
             boids[i].disable();   
             boids[i] = null;

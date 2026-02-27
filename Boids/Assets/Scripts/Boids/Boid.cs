@@ -22,19 +22,7 @@ public class Boid : MonoBehaviour{
     int myIndex;
     GameObject boid; 
 
-
-    public void init(int index, GameObject boid, IBoidSearch search, BoidInfo boidInfo) {
-        boid.SetActive(true);
-        search.AddBoid(index,boid.transform.position,this);
-        myIndex = index;
-        this.boid = boid;
-        this.search = search;
-        Vector2 rand = UnityEngine.Random.insideUnitCircle;
-        CurrHeading = new Vector3(rand.x,0,rand.y);
-        currHeading = Vector3.back;
-        this.boidInfo = boidInfo;
-
-        outsideTimer = 0;
+    private void grabValuesFromSO() {
         speed = boidInfo.Speed;
         seperationRadius = boidInfo.SeparationRadius;
         alignmentRadius = boidInfo.AlignmentRadius;
@@ -46,6 +34,23 @@ public class Boid : MonoBehaviour{
         centerForceWeight = boidInfo.CenterForceWeight;
     }
 
+    public void init(int index, GameObject boid, IBoidSearch search, BoidInfo boidInfo) {
+        boid.SetActive(true);
+        search.AddBoid(index,boid.transform.position,this);
+
+        myIndex = index;
+        this.boid = boid;
+        this.search = search;
+        this.boidInfo = boidInfo;
+
+        Vector2 rand = UnityEngine.Random.insideUnitCircle;
+        CurrHeading = new Vector3(rand.x,0,rand.y);
+        currHeading = Vector3.back;
+        outsideTimer = 0;
+
+        grabValuesFromSO();
+    }
+
     public void disable() {
         boid.SetActive(false);
     }
@@ -54,17 +59,15 @@ public class Boid : MonoBehaviour{
         move();
     }
 
-
     void move() {
         Boid[] neighbors;
         int numNeighbors;
         float maxRadius = Math.Max(Math.Max(seperationRadius,alignmentRadius),cohesionRadius);
         (numNeighbors, neighbors) = search.FindNeighbors(myIndex,maxRadius);
+
         if(numNeighbors > 0) {
             currHeading = calculateForces(numNeighbors,neighbors);
         }
-        // Quaternion targetRotation = Quaternion.Euler(0,Mathf.Atan2(finalForce.x, finalForce.z), 0);
-        // transform.rotation = targetRotation;
         transform.Translate(currHeading * speed * Time.deltaTime);
         Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),Color.red);
         search.UpdatePosition(myIndex,transform.position);
@@ -111,6 +114,7 @@ public class Boid : MonoBehaviour{
         Vector3 totalSeperation = Vector3.zero;
         Vector3 totalAlignment = Vector3.zero;
         Vector3 totalCohesion = Vector3.zero;
+
         for(int i = 0; i < numNeighbors; i++) {
             Boid currNeighbor = neighbors[i];
             Vector3 neighborPos = currNeighbor.transform.position;
@@ -124,6 +128,7 @@ public class Boid : MonoBehaviour{
         totalCohesion /= numNeighbors;
         totalCohesion.y = 1;
         totalCohesion = totalCohesion - myPos;
+
         Vector3 centerForce = getCenterForce(myPos);
 
         Vector3 finalForce = Vector3.zero;
