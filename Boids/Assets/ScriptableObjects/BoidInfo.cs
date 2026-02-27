@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "BoidInfo", menuName = "Scriptable Objects/BoidInfo")]
@@ -17,6 +18,7 @@ public class BoidInfo : ScriptableObject{
     [SerializeField] private float separationForceWeight;
     [SerializeField] private float alignmentForceWeight;
     [SerializeField] private float cohesionForceWeight;
+    [SerializeField] private float centerForceWeight;
 
     public float Speed { get => speed; set => speed = value; }
     public float SeparationRadius { get => separationRadius; set => separationRadius = value; }
@@ -26,5 +28,6 @@ public class BoidInfo : ScriptableObject{
     public float SeparationForceWeight { get => separationForceWeight; set => separationForceWeight = value; }
     public float AlignmentForceWeight { get => alignmentForceWeight; set => alignmentForceWeight = value; }
     public float CohesionForceWeight { get => cohesionForceWeight; set => cohesionForceWeight = value; }
+    public float CenterForceWeight {get => centerForceWeight; set => centerForceWeight = value; }
 
 }
