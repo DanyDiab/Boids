@@ -11,6 +11,8 @@ public class BoidInfo : ScriptableObject{
     [SerializeField] private float alignmentRadius;
     [SerializeField] private float cohesionRadius;
 
+    private float simBoundRadius; 
+
     [Header("Force Weights")]
     [SerializeField] private float separationForceWeight;
     [SerializeField] private float alignmentForceWeight;
@@ -20,7 +22,9 @@ public class BoidInfo : ScriptableObject{
     public float SeparationRadius { get => separationRadius; set => separationRadius = value; }
     public float AlignmentRadius { get => alignmentRadius; set => alignmentRadius = value; }
     public float CohesionRadius { get => cohesionRadius; set => cohesionRadius = value; }
+    public float SimBoundRadius { get => simBoundRadius; set => simBoundRadius = value; }
     public float SeparationForceWeight { get => separationForceWeight; set => separationForceWeight = value; }
     public float AlignmentForceWeight { get => alignmentForceWeight; set => alignmentForceWeight = value; }
     public float CohesionForceWeight { get => cohesionForceWeight; set => cohesionForceWeight = value; }
+
 }

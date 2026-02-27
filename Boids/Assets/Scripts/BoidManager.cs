@@ -8,7 +8,6 @@ public partial class BoidManager : MonoBehaviour{
     [SerializeField] GameObject boidPrefab;
     [SerializeField] GameObject simulationBounds;
     BFNeighborSearch search;
-
     List<Boid> boidPool;
     float width;
     float height;
@@ -22,6 +21,7 @@ public partial class BoidManager : MonoBehaviour{
         Vector3 simScale = simulationBounds.transform.localScale;
         width = simScale.x;
         height = simScale.y;
+        boidInfo.SimBoundRadius = simulationBounds.transform.localScale.x / 2;
         spawnBoids();
     }
 
@@ -82,6 +82,8 @@ public partial class BoidManager : MonoBehaviour{
             boids[i] = null;
         }
     }
+
+
 
 
 }

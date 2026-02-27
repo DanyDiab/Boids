@@ -1,18 +1,21 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Boid : MonoBehaviour{
-    [SerializeField] float speed;
-    [SerializeField] float seperationRadius;
-    [SerializeField] float alignmentRadius;
-    [SerializeField] float cohesionRadius;
+    float speed;
+    float seperationRadius;
+    float alignmentRadius;
+    float cohesionRadius;
 
-    [SerializeField] float seperationForceWeight;
-    [SerializeField] float alignmentForceWeight;
-    [SerializeField] float cohesionForceWeight;
+    float seperationForceWeight;
+    float alignmentForceWeight;
+    float cohesionForceWeight;
+    float simBoundRadius;
 
     IBoidSearch search;
     Vector3 currHeading;
+    BoidInfo boidInfo;
 
     int myIndex;
     GameObject boid; 
@@ -27,7 +30,7 @@ public class Boid : MonoBehaviour{
         Vector2 rand = UnityEngine.Random.insideUnitCircle;
         CurrHeading = new Vector3(rand.x,0,rand.y);
         currHeading = Vector3.back;
-
+        this.boidInfo = boidInfo;
         speed = boidInfo.Speed;
         seperationRadius = boidInfo.SeparationRadius;
         alignmentRadius = boidInfo.AlignmentRadius;
@@ -35,6 +38,7 @@ public class Boid : MonoBehaviour{
         seperationForceWeight = boidInfo.SeparationForceWeight;
         alignmentForceWeight = boidInfo.AlignmentForceWeight;
         cohesionForceWeight = boidInfo.CohesionForceWeight;
+        simBoundRadius = boidInfo.SimBoundRadius;
     }
 
     public void disable() {
@@ -70,6 +74,7 @@ public class Boid : MonoBehaviour{
         Vector3 totalSeperation = Vector3.zero;
         Vector3 totalAlignment = Vector3.zero;
         Vector3 totalCohesion = Vector3.zero;
+        Vector3 centerForce = Vector3.zero;
         for(int i = 0; i < numNeighbors; i++) {
             Boid currNeighbor = neighbors[i];
             Vector3 neighborPos = currNeighbor.transform.position;
@@ -80,7 +85,7 @@ public class Boid : MonoBehaviour{
                totalSeperation += seperation;
                totalSeperation.Normalize();
             }
-
+            
             if(dist * dist <= alignmentRadius * alignmentRadius) {
                 Vector3 neighborHeading = currNeighbor.CurrHeading;
                 totalAlignment += neighborHeading;  
@@ -90,13 +95,21 @@ public class Boid : MonoBehaviour{
             if(dist * dist <= cohesionRadius * cohesionRadius) {
                totalCohesion += neighborPos;
             }
-
         }
-        
+
         totalCohesion /= numNeighbors;
         totalCohesion.y = 1;
         totalCohesion = (totalCohesion - myPos).normalized;
+
         Vector3 finalForce = Vector3.zero;
+        float distToCenter = myPos.magnitude;
+
+        if(!isInSim(myPos)) {
+            float edgeWeight = distToCenter / simBoundRadius;
+            centerForce = -myPos;
+            centerForce.y = 0;
+            finalForce += centerForce * (edgeWeight * .1f);
+        }
 
         finalForce += totalSeperation.normalized * seperationForceWeight;
         finalForce += totalAlignment.normalized * alignmentForceWeight;
@@ -107,16 +120,16 @@ public class Boid : MonoBehaviour{
 
     public Vector3 CurrHeading { get => currHeading; set => currHeading = value;}
 
+    private bool isInSim(Vector3 pos) {
+        float posX = pos.x;
+        float posZ = pos.z;
 
+        float halfsimRadius = boidInfo.SimBoundRadius;
 
-    void OnDrawGizmos()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, seperationRadius);
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, alignmentRadius);
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, cohesionRadius);
+        bool xGood = posX < halfsimRadius && posX > -halfsimRadius;
+        bool zGood = posZ < halfsimRadius && posZ > -halfsimRadius;
 
+        return xGood && zGood;
     }
+
 }
