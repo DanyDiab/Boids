@@ -7,7 +7,7 @@ public class BoidManager : MonoBehaviour{
     Boid[] boids;
     [SerializeField] GameObject boidPrefab;
     [SerializeField] GameObject simulationBounds;
-    BFNeighborSearch search;
+    UniformGridSearch search;
     List<Boid> boidPool;
     float width;
     float height;
@@ -48,7 +48,7 @@ public class BoidManager : MonoBehaviour{
 
         int poolCount = boidPool.Count;
         int numGrabFromPool = Mathf.Min(numBoids,poolCount);
-        search = new BFNeighborSearch(numBoids);
+        search = new UniformGridSearch(numBoids,10,simulationBounds.gameObject.transform.localScale.x);
         if(numGrabFromPool > 0) {
             int lastElement = boidPool.Count - 1;
             for(int i = 0; i < numGrabFromPool; i++) {
