@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 
 struct BoidCellPair {
@@ -88,16 +89,21 @@ public class UniformGridSearch : IBoidSearch {
         int cellStreakID = cells[0].CellID;
         int count = 1;
         for(int i = 1; i < numBoids; i++) {
+            cellStartOffsets[cellStreakID] = i;
             int currCell = cells[i].CellID;
             if(currCell == cellStreakID) {
                 count++;
                 continue;
             }
-            cellStartOffsets[cellStreakID] = i;
             cellSizes[cellStreakID] = count;
             cellStreakID = currCell;
             count = 1;
         }
+        
+        // for(int i = 0; i < numCells; i++) {
+        //    Debug.LogFormat("idx: {0} | val: {1}", i,cellStartOffsets[i]); 
+        // }
+
     }
 // returns {top, bottom, left, right, top left, top right, bottom left, bottom right}
     int[] getNeighboringCellIDs(int cellID) {

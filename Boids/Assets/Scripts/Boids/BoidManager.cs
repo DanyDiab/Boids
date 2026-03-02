@@ -12,9 +12,14 @@ public class BoidManager : MonoBehaviour{
     float width;
     float height;
     [SerializeField] BoidInfo boidInfo;
+    [Header("Gizmo Options")]
+    [SerializeField] Color permitierColor;
+    [SerializeField] Color cellColor;
+    [SerializeField] bool showGizmos;
+
 
     void Start(){
-        numBoids = 500;
+        numBoids = 50;
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
         Vector3 simScale = simulationBounds.transform.localScale;
@@ -79,5 +84,22 @@ public class BoidManager : MonoBehaviour{
             boids[i].disable();   
             boids[i] = null;
         }
+    }
+
+
+    void OnDrawGizmos() {
+        if(!showGizmos) return;
+        Gizmos.color = cellColor;
+        float sizePerCell = width / 20f;
+        for(int i = 0; i < 400; i++) {
+            int rowNumber = i / 20;
+            int colNumber = i % 20;
+            float xPos = (-width / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
+            float zPos = (-height / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
+            Vector3 finalPosition = new Vector3(xPos, 0, zPos);
+            Gizmos.DrawWireCube(finalPosition, new Vector3(sizePerCell, 0, sizePerCell));
+        }
+        Gizmos.color = permitierColor;
+        Gizmos.DrawWireCube(Vector3.zero,new Vector3(width, 0, height));
     }
 }
