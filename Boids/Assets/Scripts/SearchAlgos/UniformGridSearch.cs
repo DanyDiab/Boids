@@ -45,6 +45,7 @@ public class UniformGridSearch : IBoidSearch {
         cells = new BoidCellPair[numBoids];
         cellStartOffsets = new int[numCells];
         cellSizes = new int[numCells];
+        Debug.Log(simBoundRadius);
     }
     public void UpdatePosition(int idx, Vector3 newPos) {
         boidPositions[idx] = newPos;
@@ -65,9 +66,9 @@ public class UniformGridSearch : IBoidSearch {
 
     // returns cellID
     int getCellID(Vector3 position) {
-        int xCell = (int) (position.x + simBoundRadius) / numCellsPerRow;
-        int zCell = (int) (position.z  + simBoundRadius) / numCellsPerRow;
 
+        int xCell = (int) (position.x + (simBoundRadius / 2))  / cellSize;
+        int zCell = (int) (position.z + (simBoundRadius / 2)) / cellSize;
         int cellID = (zCell * numCellsPerRow) + xCell;
         return cellID;
     }
@@ -89,13 +90,13 @@ public class UniformGridSearch : IBoidSearch {
         int cellStreakID = cells[0].CellID;
         int count = 1;
         for(int i = 1; i < numBoids; i++) {
-            cellStartOffsets[cellStreakID] = i;
             int currCell = cells[i].CellID;
             if(currCell == cellStreakID) {
                 count++;
                 continue;
             }
             cellSizes[cellStreakID] = count;
+            cellStartOffsets[cellStreakID] = i - count;
             cellStreakID = currCell;
             count = 1;
         }

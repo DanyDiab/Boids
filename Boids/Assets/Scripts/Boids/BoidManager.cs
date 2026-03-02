@@ -19,7 +19,7 @@ public class BoidManager : MonoBehaviour{
 
 
     void Start(){
-        numBoids = 50;
+        numBoids = 100;
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
         Vector3 simScale = simulationBounds.transform.localScale;

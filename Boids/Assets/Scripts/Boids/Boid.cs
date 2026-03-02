@@ -35,6 +35,7 @@ public class Boid : MonoBehaviour{
     }
 
     public void init(int index, GameObject boid, IBoidSearch search, BoidInfo boidInfo) {
+        
         boid.SetActive(true);
         search.AddBoid(index,boid.transform.position,this);
 
@@ -47,8 +48,9 @@ public class Boid : MonoBehaviour{
         CurrHeading = new Vector3(rand.x,0,rand.y);
         currHeading = Vector3.back;
         outsideTimer = 0;
-
         grabValuesFromSO();
+
+
     }
 
     public void disable() {
@@ -68,8 +70,12 @@ public class Boid : MonoBehaviour{
         if(numNeighbors > 0) {
             currHeading = calculateForces(numNeighbors,neighbors);
         }
+        currHeading += getCenterForceScaled();
+        
         transform.Translate(currHeading * speed * Time.deltaTime);
-        Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),Color.red);
+        // Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),Color.red);
+        drawNeighbors(transform.position,neighbors);
+        
         search.UpdatePosition(myIndex,transform.position);
     }
 
@@ -129,15 +135,21 @@ public class Boid : MonoBehaviour{
         totalCohesion.y = 1;
         totalCohesion = totalCohesion - myPos;
 
-        Vector3 centerForce = getCenterForce(myPos);
 
         Vector3 finalForce = Vector3.zero;
-        finalForce += centerForce * (outsideTimer * centerForceWeight);
         finalForce += totalSeperation.normalized * seperationForceWeight;
         finalForce += totalAlignment.normalized * alignmentForceWeight;
         finalForce += totalCohesion.normalized * cohesionForceWeight;
         
         return finalForce.normalized;
+    }
+
+
+    Vector3 getCenterForceScaled() {
+        Vector3 myPos = boid.transform.position;
+        Vector3 centerForce = getCenterForce(myPos);
+        Vector3 finalForce = centerForce * (outsideTimer * centerForceWeight);
+        return finalForce;
     }
 
     public Vector3 CurrHeading { get => currHeading; set => currHeading = value;}
@@ -152,6 +164,14 @@ public class Boid : MonoBehaviour{
         bool zGood = posZ < halfsimRadius && posZ > -halfsimRadius;
 
         return xGood && zGood;
+    }
+
+
+    private void drawNeighbors(Vector3 myPos, Boid[] neighbors) {
+        foreach(Boid neighbor in neighbors) {
+            Vector3 neighborPos = neighbor.gameObject.transform.position;
+            Debug.DrawLine(myPos, neighborPos,Color.black);
+        }
     }
 
 }
