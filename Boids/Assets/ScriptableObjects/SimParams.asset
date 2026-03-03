@@ -12,9 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a70e6f0e2caf34b4d89c760ae003911b, type: 3}
   m_Name: SimParams
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
-  numBoids: 0
-  simBoundRadius: 0
-  simBounds: {fileID: 0}
-  permitierColor: {r: 0, g: 0, b: 0, a: 0}
-  cellColor: {r: 0, g: 0, b: 0, a: 0}
-  showGizmos: 0
+  numBoids: 500
+  simBoundRadius: 200
+  gizmoStruct:
+    permiterColor: {r: 0, g: 0, b: 0, a: 1}
+    cellColor: {r: 0.107819594, g: 0.5754717, b: 0.09500711, a: 1}
+    headingColor: {r: 0.8113208, g: 0.46306515, b: 0.46306515, a: 0.8509804}
+    neighborColor: {r: 0.371529, g: 0.645048, b: 0.6509434, a: 0.7019608}
+    showBoidHeading: 0
+    showGrid: 0
+    showNeighbors: 0
