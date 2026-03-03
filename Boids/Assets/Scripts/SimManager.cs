@@ -8,6 +8,11 @@ public class SimManager : MonoBehaviour{
     GizmoStruct gizmoStruct;
 
     void Start() {
+        init();
+        BoidManager.OnBoidSpawn += init;
+    }
+
+    void init() {
         simBoundRadius = simParams.SimBoundRadius;
         gizmoStruct = simParams.GizmoStruct;
         Vector3 simScale = new Vector3(simBoundRadius,simBoundRadius,simBoundRadius);

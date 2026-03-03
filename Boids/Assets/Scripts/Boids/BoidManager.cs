@@ -13,11 +13,18 @@ public class BoidManager : MonoBehaviour{
     [SerializeField] BoidInfo boidInfo;
     [SerializeField] SimulationParameters simParams;
 
+    public delegate void BoidSpawnEvent();
+    public static event BoidSpawnEvent OnBoidSpawn;
+
     void Start(){
-        numBoids = simParams.NumBoids;
+        init();
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
         spawnBoids();
+        OnBoidSpawn += init;
+    }
+    void init() {
+        numBoids = simParams.NumBoids;
     }
 
     void Update(){
@@ -41,6 +48,8 @@ public class BoidManager : MonoBehaviour{
 
 
     void spawnBoids() {
+        OnBoidSpawn?.Invoke();
+
         width = simParams.SimBoundRadius;
 
         int poolCount = boidPool.Count;
@@ -67,6 +76,7 @@ public class BoidManager : MonoBehaviour{
             boid.init(i,boidGO, search, boidInfo, simParams);
             boids[i] = boid;
         }
+
     }
 
     void clearBoids() {
