@@ -81,8 +81,7 @@ public class UniformGridSearch : IBoidSearch {
             int boidID = boidCellPair.BoidID;
             Vector3 pos = boidPositions[boidID];
             // update cell based on position
-            int newCell = getCellID(pos);
-            boidCellPair.CellID = newCell;
+            cells[i].CellID = getCellID(pos);
         }
     }
 
@@ -100,13 +99,12 @@ public class UniformGridSearch : IBoidSearch {
             cellStreakID = currCell;
             count = 1;
         }
-        
-        // for(int i = 0; i < numCells; i++) {
-        //    Debug.LogFormat("idx: {0} | val: {1}", i,cellStartOffsets[i]); 
-        // }
+        cellSizes[cellStreakID] = count;
+        cellStartOffsets[cellStreakID] = numBoids - count;
+
 
     }
-// returns {top, bottom, left, right, top left, top right, bottom left, bottom right}
+// returns {curr, top, bottom, left, right, top left, top right, bottom left, bottom right}
     int[] getNeighboringCellIDs(int cellID) {
         int t = cellID - numCellsPerRow;
         int b = cellID + numCellsPerRow;
@@ -117,10 +115,9 @@ public class UniformGridSearch : IBoidSearch {
         int bl = b - 1;
         int br = b + 1;
 
-        int r = tr + numCellsPerRow;
-        int l = tl - numCellsPerRow;
-
-        int[] neighboringCellIDs = {t,b,l,r,tl,tr,bl,br};
+        int r = cellID + 1;
+        int l = cellID - 1;
+        int[] neighboringCellIDs = {cellID,t,b,l,r,tl,tr,bl,br};
         return neighboringCellIDs;
     }
 
@@ -134,21 +131,26 @@ public class UniformGridSearch : IBoidSearch {
         BoidCellPair currBoidPair = Array.Find(cells, p => p.BoidID == index);
         // get cell that its in
         int myCellID = currBoidPair.CellID;
-        // get neighboring cells
         List<Boid> boidNeighbors = new List<Boid>(numBoids);
         Vector3 currPos = boidPositions[index];
         int numNeighbors = 0;
+        // get neighboring cells
+
         int[] neighboringCellIDs = getNeighboringCellIDs(myCellID);
-        for(int i = 0; i < 8; i++) {
+        for(int i = 0; i < neighboringCellIDs.Length; i++) {
             int currNeighborCellID = neighboringCellIDs[i];
             // skip if the neighborCellID is invalid
             if(currNeighborCellID < 0 || currNeighborCellID > numCells - 1) continue;
             int start = cellStartOffsets[currNeighborCellID];
             int cellCount = cellSizes[currNeighborCellID];
             for(int j = start; j < cellCount + start; j++) {
-                Boid currBoid = boids[j];
+                BoidCellPair currBoidCellPair = cells[j];
+                // skip myself
+                int boidID = currBoidCellPair.BoidID;
+                Boid currBoid = boids[boidID];
+                if(boidID == index) continue;
                 float radiusSq = radius * radius;
-                Vector3 distance = currPos - boidPositions[j];
+                Vector3 distance = currPos - boidPositions[boidID];
                 if(distance.sqrMagnitude <= radiusSq) {
                     boidNeighbors.Add(currBoid);
                     numNeighbors++;

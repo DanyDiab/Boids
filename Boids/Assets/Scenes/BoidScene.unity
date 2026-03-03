@@ -464,8 +464,8 @@ MonoBehaviour:
   boidPrefab: {fileID: 7466432339302856458, guid: a681f4e4294ae8449b13c2fcec2ecdc7, type: 3}
   simulationBounds: {fileID: 1376469489}
   boidInfo: {fileID: 11400000, guid: 154346b5e865a25428c01c53d2966e8c, type: 2}
-  permitierColor: {r: 1, g: 0, b: 0, a: 0}
-  cellColor: {r: 0.066278934, g: 1, b: 0, a: 0}
+  permitierColor: {r: 1, g: 0, b: 0, a: 1}
+  cellColor: {r: 0.066278934, g: 1, b: 0, a: 1}
   showGizmos: 1
 --- !u!4 &1079873269
 Transform:

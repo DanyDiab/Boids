@@ -71,7 +71,7 @@ public class Boid : MonoBehaviour{
             currHeading = calculateForces(numNeighbors,neighbors);
         }
         currHeading += getCenterForceScaled();
-        
+
         transform.Translate(currHeading * speed * Time.deltaTime);
         // Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),Color.red);
         drawNeighbors(transform.position,neighbors);
@@ -107,6 +107,7 @@ public class Boid : MonoBehaviour{
         if(!isInSim(myPos)) {
             centerForce = -myPos;
             centerForce.y = 0;
+            centerForce.Normalize();
             outsideTimer += Time.deltaTime;
         }
         else {
@@ -172,6 +173,10 @@ public class Boid : MonoBehaviour{
             Vector3 neighborPos = neighbor.gameObject.transform.position;
             Debug.DrawLine(myPos, neighborPos,Color.black);
         }
+    }
+
+    public int getID() {
+        return myIndex;
     }
 
 }
