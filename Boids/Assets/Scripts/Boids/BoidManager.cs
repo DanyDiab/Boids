@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,26 +7,16 @@ public class BoidManager : MonoBehaviour{
     int numBoids;
     Boid[] boids;
     [SerializeField] GameObject boidPrefab;
-    [SerializeField] GameObject simulationBounds;
     UniformGridSearch search;
     List<Boid> boidPool;
     float width;
-    float height;
     [SerializeField] BoidInfo boidInfo;
-    [Header("Gizmo Options")]
-    [SerializeField] Color permitierColor;
-    [SerializeField] Color cellColor;
-    [SerializeField] bool showGizmos;
-
+    [SerializeField] SimulationParameters simParams;
 
     void Start(){
-        numBoids = 100;
+        numBoids = simParams.NumBoids;
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
-        Vector3 simScale = simulationBounds.transform.localScale;
-        width = simScale.x;
-        height = simScale.y;
-        boidInfo.SimBoundRadius = simulationBounds.transform.localScale.x / 2;
         spawnBoids();
     }
 
@@ -40,25 +31,26 @@ public class BoidManager : MonoBehaviour{
 
     (Vector3, Quaternion) getRandPosRot() {
         float halfWidth = width / 2;
-        float halfHeight = height / 2;
         float posX = halfWidth - UnityEngine.Random.Range(0,width);
-        float posZ = halfHeight - UnityEngine.Random.Range(0,height);
+        float posZ = halfWidth - UnityEngine.Random.Range(0,width);
         float randRot = UnityEngine.Random.Range(0,359);
         Vector3 pos = new Vector3(posX,1,posZ);
         Quaternion rotation = Quaternion.Euler(0,randRot,0);
         return(pos,rotation);
     }
 
+
     void spawnBoids() {
+        width = simParams.SimBoundRadius;
 
         int poolCount = boidPool.Count;
         int numGrabFromPool = Mathf.Min(numBoids,poolCount);
-        search = new UniformGridSearch(numBoids,10,simulationBounds.gameObject.transform.localScale.x);
+        search = new UniformGridSearch(numBoids,10,width);
         if(numGrabFromPool > 0) {
             int lastElement = boidPool.Count - 1;
             for(int i = 0; i < numGrabFromPool; i++) {
                 Boid boid = boidPool[lastElement];
-                boid.init(i,boid.gameObject,search, boidInfo);
+                boid.init(i,boid.gameObject,search, boidInfo, simParams);
                 boidPool.RemoveAt(lastElement);
                 boids[i] = boid;
                 (Vector3 pos, Quaternion rot) = getRandPosRot();
@@ -72,7 +64,7 @@ public class BoidManager : MonoBehaviour{
             (Vector3 pos, Quaternion rot) = getRandPosRot();
             GameObject boidGO = Instantiate(boidPrefab,pos,Quaternion.identity);
             Boid boid = boidGO.GetComponent<Boid>();
-            boid.init(i,boidGO, search, boidInfo);
+            boid.init(i,boidGO, search, boidInfo, simParams);
             boids[i] = boid;
         }
     }
@@ -84,22 +76,5 @@ public class BoidManager : MonoBehaviour{
             boids[i].disable();   
             boids[i] = null;
         }
-    }
-
-
-    void OnDrawGizmos() {
-        if(!showGizmos) return;
-        Gizmos.color = cellColor;
-        float sizePerCell = width / 20f;
-        for(int i = 0; i < 400; i++) {
-            int rowNumber = i / 20;
-            int colNumber = i % 20;
-            float xPos = (-width / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
-            float zPos = (-height / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
-            Vector3 finalPosition = new Vector3(xPos, 0, zPos);
-            Gizmos.DrawWireCube(finalPosition, new Vector3(sizePerCell, 0, sizePerCell));
-        }
-        Gizmos.color = permitierColor;
-        Gizmos.DrawWireCube(Vector3.zero,new Vector3(width, 0, height));
     }
 }

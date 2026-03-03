@@ -17,10 +17,15 @@ public class Boid : MonoBehaviour{
 
     IBoidSearch search;
     Vector3 currHeading;
-    BoidInfo boidInfo;
-
     int myIndex;
     GameObject boid; 
+
+    [Header("SOs")]
+    BoidInfo boidInfo;
+    SimulationParameters simParams;
+    
+    GizmoStruct gizmoStruct;
+
 
     private void grabValuesFromSO() {
         speed = boidInfo.Speed;
@@ -30,11 +35,13 @@ public class Boid : MonoBehaviour{
         seperationForceWeight = boidInfo.SeparationForceWeight;
         alignmentForceWeight = boidInfo.AlignmentForceWeight;
         cohesionForceWeight = boidInfo.CohesionForceWeight;
-        simBoundRadius = boidInfo.SimBoundRadius;
         centerForceWeight = boidInfo.CenterForceWeight;
+
+        simBoundRadius = simParams.SimBoundRadius;
+        gizmoStruct = simParams.GizmoStruct;
     }
 
-    public void init(int index, GameObject boid, IBoidSearch search, BoidInfo boidInfo) {
+    public void init(int index, GameObject boid, IBoidSearch search, BoidInfo boidInfo, SimulationParameters simParams) {
         
         boid.SetActive(true);
         search.AddBoid(index,boid.transform.position,this);
@@ -43,14 +50,12 @@ public class Boid : MonoBehaviour{
         this.boid = boid;
         this.search = search;
         this.boidInfo = boidInfo;
-
+        this.simParams = simParams;
         Vector2 rand = UnityEngine.Random.insideUnitCircle;
         CurrHeading = new Vector3(rand.x,0,rand.y);
         currHeading = Vector3.back;
         outsideTimer = 0;
         grabValuesFromSO();
-
-
     }
 
     public void disable() {
@@ -73,8 +78,13 @@ public class Boid : MonoBehaviour{
         currHeading += getCenterForceScaled();
 
         transform.Translate(currHeading * speed * Time.deltaTime);
-        // Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),Color.red);
-        drawNeighbors(transform.position,neighbors);
+        if (gizmoStruct.showBoidHeading) {
+            Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),gizmoStruct.headingColor);
+        }
+
+        if (gizmoStruct.showNeighbors) {
+            drawNeighbors(transform.position,neighbors);
+        }
         
         search.UpdatePosition(myIndex,transform.position);
     }
@@ -159,7 +169,7 @@ public class Boid : MonoBehaviour{
         float posX = pos.x;
         float posZ = pos.z;
 
-        float halfsimRadius = boidInfo.SimBoundRadius;
+        float halfsimRadius = simBoundRadius / 2;
 
         bool xGood = posX < halfsimRadius && posX > -halfsimRadius;
         bool zGood = posZ < halfsimRadius && posZ > -halfsimRadius;
@@ -171,7 +181,7 @@ public class Boid : MonoBehaviour{
     private void drawNeighbors(Vector3 myPos, Boid[] neighbors) {
         foreach(Boid neighbor in neighbors) {
             Vector3 neighborPos = neighbor.gameObject.transform.position;
-            Debug.DrawLine(myPos, neighborPos,Color.black);
+            Debug.DrawLine(myPos, neighborPos, gizmoStruct.neighborColor);
         }
     }
 

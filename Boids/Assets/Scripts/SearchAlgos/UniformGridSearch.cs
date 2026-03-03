@@ -45,7 +45,6 @@ public class UniformGridSearch : IBoidSearch {
         cells = new BoidCellPair[numBoids];
         cellStartOffsets = new int[numCells];
         cellSizes = new int[numCells];
-        Debug.Log(simBoundRadius);
     }
     public void UpdatePosition(int idx, Vector3 newPos) {
         boidPositions[idx] = newPos;
