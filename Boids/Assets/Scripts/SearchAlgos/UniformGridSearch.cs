@@ -38,8 +38,8 @@ public class UniformGridSearch : IBoidSearch {
         boidPositions = new Vector3[numBoids];
         boids = new Boid[numBoids];
         this.cellSize = cellSize;
-        int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize);
-        this.simBoundRadius = simBoundRadius;
+        int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;
+        this.simBoundRadius = simBoundRadius + (cellSize / 2);
         numCellsPerRow = numCellsRow;
         numCells = numCellsPerRow * numCellsPerRow;
         cells = new BoidCellPair[numBoids];
