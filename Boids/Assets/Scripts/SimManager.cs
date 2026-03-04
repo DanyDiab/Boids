@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using System;
 
 public class SimManager : MonoBehaviour{
     [SerializeField] SimulationParameters simParams;
@@ -6,6 +8,8 @@ public class SimManager : MonoBehaviour{
 
     float simBoundRadius;
     GizmoStruct gizmoStruct;
+    [Header("Text Element")]
+    [SerializeField] TMP_Text TMPtext;
 
     void Start() {
         init();
@@ -17,6 +21,16 @@ public class SimManager : MonoBehaviour{
         gizmoStruct = simParams.GizmoStruct;
         Vector3 simScale = new Vector3(simBoundRadius,simBoundRadius,simBoundRadius);
         simBounds.gameObject.transform.localScale = simScale;
+        initalizeText();
+    }
+
+
+    void initalizeText(){
+        int numBoids = simParams.NumBoids;
+        string text = "Simulation Stats\n";
+        text += "Num Boids: " + numBoids + "\n";
+        Debug.Log(text);
+        TMPtext.text = text;
     }
 
     void OnDrawGizmos() {
