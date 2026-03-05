@@ -85,6 +85,8 @@ public class Boid : MonoBehaviour{
         if (gizmoStruct.showNeighbors) {
             drawNeighbors(transform.position,neighbors);
         }
+
+        SimManager.updateRunningTotals(numNeighbors,0);
         
         search.UpdatePosition(myIndex,transform.position);
     }

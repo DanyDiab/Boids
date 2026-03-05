@@ -15,6 +15,8 @@ public class BoidManager : MonoBehaviour{
 
     public delegate void BoidSpawnEvent();
     public static event BoidSpawnEvent OnBoidSpawn;
+    
+
 
     void Start(){
         init();
@@ -87,4 +89,6 @@ public class BoidManager : MonoBehaviour{
             boids[i] = null;
         }
     }
+
+
 }

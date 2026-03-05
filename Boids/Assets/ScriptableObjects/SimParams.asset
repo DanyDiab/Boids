@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a70e6f0e2caf34b4d89c760ae003911b, type: 3}
   m_Name: SimParams
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
-  numBoids: 500
+  numBoids: 200
   simBoundRadius: 200
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}

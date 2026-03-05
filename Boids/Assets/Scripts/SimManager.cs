@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System;
+using Unity.VisualScripting;
 
 public class SimManager : MonoBehaviour{
     [SerializeField] SimulationParameters simParams;
@@ -10,6 +11,11 @@ public class SimManager : MonoBehaviour{
     GizmoStruct gizmoStruct;
     [Header("Text Element")]
     [SerializeField] TMP_Text TMPtext;
+
+    static int totalNeighbors;
+    static float density;
+    static int numCounted;
+    static int numBoids;
 
     void Start() {
         init();
@@ -21,6 +27,10 @@ public class SimManager : MonoBehaviour{
         gizmoStruct = simParams.GizmoStruct;
         Vector3 simScale = new Vector3(simBoundRadius,simBoundRadius,simBoundRadius);
         simBounds.gameObject.transform.localScale = simScale;
+        numBoids = simParams.NumBoids;
+    }
+
+    void Update() {
         initalizeText();
     }
 
@@ -29,8 +39,21 @@ public class SimManager : MonoBehaviour{
         int numBoids = simParams.NumBoids;
         string text = "Simulation Stats\n";
         text += "Num Boids: " + numBoids + "\n";
-        Debug.Log(text);
+        text += "Density: " + density + "\n";
         TMPtext.text = text;
+    }
+
+
+    public static void updateRunningTotals(int numNeighbors, int numChecks) {
+        numCounted++;
+        totalNeighbors += numNeighbors;
+        if(numCounted == numBoids) {
+            Debug.Log(totalNeighbors);
+            density = (float) totalNeighbors / numBoids;
+            Debug.Log(density);
+            totalNeighbors = 0;
+            numCounted = 0;
+        }
     }
 
     void OnDrawGizmos() {
@@ -48,4 +71,7 @@ public class SimManager : MonoBehaviour{
         Gizmos.color = gizmoStruct.permiterColor;
         Gizmos.DrawWireCube(Vector3.zero,new Vector3(simBoundRadius, 0, simBoundRadius));
     }
+
+
+
 }
