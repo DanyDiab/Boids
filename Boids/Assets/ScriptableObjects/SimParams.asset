@@ -18,7 +18,7 @@ MonoBehaviour:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}
     cellColor: {r: 0.107819594, g: 0.5754717, b: 0.09500711, a: 1}
     headingColor: {r: 0, g: 0, b: 0, a: 1}
-    neighborColor: {r: 0.371529, g: 0.645048, b: 0.6509434, a: 0.7019608}
+    neighborColor: {r: 0.6509804, g: 0.37254903, b: 0.4162208, a: 1}
     showBoidHeading: 1
     showGrid: 0
     showNeighbors: 1

@@ -69,8 +69,9 @@ public class Boid : MonoBehaviour{
     void move() {
         Boid[] neighbors;
         int numNeighbors;
+        int numChecks;
         float maxRadius = Math.Max(Math.Max(seperationRadius,alignmentRadius),cohesionRadius);
-        (numNeighbors, neighbors) = search.FindNeighbors(myIndex,maxRadius);
+        (numNeighbors, numChecks, neighbors) = search.FindNeighbors(myIndex,maxRadius);
 
         if(numNeighbors > 0) {
             currHeading = calculateForces(numNeighbors,neighbors);
@@ -86,7 +87,7 @@ public class Boid : MonoBehaviour{
             drawNeighbors(transform.position,neighbors);
         }
 
-        SimManager.updateRunningTotals(numNeighbors,0);
+        SimManager.updateRunningTotals(numNeighbors,numChecks);
         
         search.UpdatePosition(myIndex,transform.position);
     }

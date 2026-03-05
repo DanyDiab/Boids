@@ -13,6 +13,9 @@ public class SimManager : MonoBehaviour{
     [SerializeField] TMP_Text TMPtext;
 
     static int totalNeighbors;
+    static int totalChecksRunningTotal;
+    static int totalChecksText;
+    static float averageNumChecks;
     static float density;
     static int numCounted;
     static int numBoids;
@@ -40,6 +43,8 @@ public class SimManager : MonoBehaviour{
         string text = "Simulation Stats\n";
         text += "Num Boids: " + numBoids + "\n";
         text += "Density: " + density + "\n";
+        text += "Total Checks: " + totalChecksText + "\n";
+        text += "Average Checks Per Boid: " + averageNumChecks + "\n"; 
         TMPtext.text = text;
     }
 
@@ -47,10 +52,13 @@ public class SimManager : MonoBehaviour{
     public static void updateRunningTotals(int numNeighbors, int numChecks) {
         numCounted++;
         totalNeighbors += numNeighbors;
+        totalChecksRunningTotal += numChecks;
         if(numCounted == numBoids) {
-            Debug.Log(totalNeighbors);
             density = (float) totalNeighbors / numBoids;
-            Debug.Log(density);
+            totalChecksText = totalChecksRunningTotal;
+            averageNumChecks = (float) totalChecksRunningTotal / numBoids;
+
+            totalChecksRunningTotal = 0;
             totalNeighbors = 0;
             numCounted = 0;
         }

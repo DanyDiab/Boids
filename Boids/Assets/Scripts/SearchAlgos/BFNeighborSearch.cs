@@ -26,20 +26,22 @@ public class BFNeighborSearch : IBoidSearch {
         boids[index] = null;
     }
 
-    public (int, Boid[]) FindNeighbors(int index, float radius){
+    public (int, int, Boid[]) FindNeighbors(int index, float radius){
        Span<Vector3> positions = boidPositions;
 
         Vector3 currPos = positions[index];
         int numNeighbors = 0;
         float radiusSq = radius * radius;
+        int numChecks = 0;
         for(int i = 0; i < positions.Length; i++) {
             if(i == index) continue;
             Vector3 distance = currPos - positions[i];
+            numChecks++;
             if(distance.sqrMagnitude <= radiusSq) {
                 currNeighbors[numNeighbors] = boids[i];
                 numNeighbors++;
             }
         }
-        return (numNeighbors, currNeighbors);
+        return (numNeighbors, numChecks, currNeighbors);
     }
 }

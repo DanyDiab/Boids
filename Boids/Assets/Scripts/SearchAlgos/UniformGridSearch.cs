@@ -120,7 +120,7 @@ public class UniformGridSearch : IBoidSearch {
         return neighboringCellIDs;
     }
 
-    public (int, Boid[]) FindNeighbors(int index, float radius) {
+    public (int, int, Boid[]) FindNeighbors(int index, float radius) {
         // update boid cellIDs
         updateCells();
         // sort based on cellID
@@ -136,6 +136,7 @@ public class UniformGridSearch : IBoidSearch {
         // get neighboring cells
 
         int[] neighboringCellIDs = getNeighboringCellIDs(myCellID);
+        int numChecks = 0;
         for(int i = 0; i < neighboringCellIDs.Length; i++) {
             int currNeighborCellID = neighboringCellIDs[i];
             // skip if the neighborCellID is invalid
@@ -148,6 +149,7 @@ public class UniformGridSearch : IBoidSearch {
                 int boidID = currBoidCellPair.BoidID;
                 Boid currBoid = boids[boidID];
                 if(boidID == index) continue;
+                numChecks++;
                 float radiusSq = radius * radius;
                 Vector3 distance = currPos - boidPositions[boidID];
                 if(distance.sqrMagnitude <= radiusSq) {
@@ -157,6 +159,6 @@ public class UniformGridSearch : IBoidSearch {
             }
         }
         currNeighbors = boidNeighbors.ToArray();
-        return (numNeighbors, currNeighbors);
+        return (numNeighbors, numChecks, currNeighbors);
     }
 }
