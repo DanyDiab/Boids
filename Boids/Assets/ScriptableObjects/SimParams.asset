@@ -21,4 +21,4 @@ MonoBehaviour:
     neighborColor: {r: 0.6509804, g: 0.37254903, b: 0.4162208, a: 1}
     showBoidHeading: 1
     showGrid: 0
-    showNeighbors: 1
+    showNeighbors: 0

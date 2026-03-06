@@ -7,7 +7,8 @@ public class BoidManager : MonoBehaviour{
     int numBoids;
     Boid[] boids;
     [SerializeField] GameObject boidPrefab;
-    UniformGridSearch search;
+    IBoidSearch search;
+    [SerializeField] SearchAlgos currSearchAlgo;
     List<Boid> boidPool;
     float width;
     [SerializeField] BoidInfo boidInfo;
@@ -15,7 +16,6 @@ public class BoidManager : MonoBehaviour{
 
     public delegate void BoidSpawnEvent();
     public static event BoidSpawnEvent OnBoidSpawn;
-    
 
 
     void Start(){
@@ -27,6 +27,21 @@ public class BoidManager : MonoBehaviour{
     }
     void init() {
         numBoids = simParams.NumBoids;
+        initSearch();
+    }
+
+    void initSearch() {
+        switch (currSearchAlgo) {
+            case (SearchAlgos.BF): {
+                search = new BFNeighborSearch(numBoids);
+                break;
+            }
+            case (SearchAlgos.UNIFORMGRID): {
+                search = new UniformGridSearch(numBoids,10,width);
+                break;
+            }
+
+        }
     }
 
     void Update(){
@@ -56,7 +71,6 @@ public class BoidManager : MonoBehaviour{
 
         int poolCount = boidPool.Count;
         int numGrabFromPool = Mathf.Min(numBoids,poolCount);
-        search = new UniformGridSearch(numBoids,10,width);
         if(numGrabFromPool > 0) {
             int lastElement = boidPool.Count - 1;
             for(int i = 0; i < numGrabFromPool; i++) {

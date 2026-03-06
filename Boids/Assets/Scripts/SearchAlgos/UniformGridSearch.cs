@@ -4,17 +4,21 @@ using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEngine;
 
-struct BoidCellPair {
+struct BoidCellPair : IComparable<BoidCellPair> {
     int cellID;
     int boidID;
 
-    public BoidCellPair(int cellID, int boidID) {
+    public BoidCellPair(int cellID, int boidID)  {
         this.cellID = cellID;
         this.boidID = boidID;
     }
 
     public int CellID {get => cellID; set => cellID = value; }
     public int BoidID {get => boidID; set => boidID = value; }
+    public int CompareTo(BoidCellPair other) {
+        return cellID.CompareTo(other.cellID);
+    }
+
 
 }
 public class UniformGridSearch : IBoidSearch {
@@ -31,6 +35,8 @@ public class UniformGridSearch : IBoidSearch {
     int[] cellStartOffsets;
     int[] cellSizes;
     float simBoundRadius;
+
+    int[] neighboringCellIDs = new int[9];
 
     public UniformGridSearch(int numBoids, int cellSize, float simBoundRadius) {
         this.numBoids = numBoids;
@@ -104,38 +110,41 @@ public class UniformGridSearch : IBoidSearch {
 
     }
 // returns {curr, top, bottom, left, right, top left, top right, bottom left, bottom right}
-    int[] getNeighboringCellIDs(int cellID) {
+    void updateNeighboringCellIDs(int cellID) {
         int t = cellID - numCellsPerRow;
         int b = cellID + numCellsPerRow;
 
-        int tl = t - 1;
-        int tr = t + 1;
+        neighboringCellIDs[0] = cellID;
+        neighboringCellIDs[1] = t;
+        neighboringCellIDs[2] = b;
+        neighboringCellIDs[3] = cellID - 1;
+        neighboringCellIDs[4] = cellID + 1;
+        neighboringCellIDs[5] = t - 1;
+        neighboringCellIDs[6] = t + 1;
+        neighboringCellIDs[7] = b - 1;
+        neighboringCellIDs[8] = b + 1;
+    }
 
-        int bl = b - 1;
-        int br = b + 1;
 
-        int r = cellID + 1;
-        int l = cellID - 1;
-        int[] neighboringCellIDs = {cellID,t,b,l,r,tl,tr,bl,br};
-        return neighboringCellIDs;
+    void updateGrid() {
+        updateCells();
+        Array.Sort(cells,(x,y) => x.CellID.CompareTo(y.CellID));
+        updateCellInfo();
     }
 
     public (int, int, Boid[]) FindNeighbors(int index, float radius) {
-        // update boid cellIDs
-        updateCells();
-        // sort based on cellID
-        Array.Sort(cells,(x,y) => x.CellID.CompareTo(y.CellID));
+        if(index == 0) {
+            // build the grid once per frame
+            updateGrid();
+        }
         // sort array containing cell starts
-        updateCellInfo();
-        BoidCellPair currBoidPair = Array.Find(cells, p => p.BoidID == index);
         // get cell that its in
-        int myCellID = currBoidPair.CellID;
-        List<Boid> boidNeighbors = new List<Boid>(numBoids);
         Vector3 currPos = boidPositions[index];
+        int myCellID = getCellID(currPos);
         int numNeighbors = 0;
         // get neighboring cells
 
-        int[] neighboringCellIDs = getNeighboringCellIDs(myCellID);
+        updateNeighboringCellIDs(myCellID);
         int numChecks = 0;
         for(int i = 0; i < neighboringCellIDs.Length; i++) {
             int currNeighborCellID = neighboringCellIDs[i];
@@ -153,12 +162,11 @@ public class UniformGridSearch : IBoidSearch {
                 float radiusSq = radius * radius;
                 Vector3 distance = currPos - boidPositions[boidID];
                 if(distance.sqrMagnitude <= radiusSq) {
-                    boidNeighbors.Add(currBoid);
+                    currNeighbors[numNeighbors] = currBoid;
                     numNeighbors++;
                 }
             }
         }
-        currNeighbors = boidNeighbors.ToArray();
         return (numNeighbors, numChecks, currNeighbors);
     }
 }
