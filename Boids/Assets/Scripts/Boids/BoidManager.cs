@@ -20,7 +20,6 @@ public class BoidManager : MonoBehaviour{
 
     void Awake(){
         init();
-        boids = new Boid[numBoids];
         boidPool = new List<Boid>();
         spawnBoids();
         OnBoidSpawn += init;
@@ -28,6 +27,7 @@ public class BoidManager : MonoBehaviour{
     void init() {
         width = simParams.SimBoundRadius;
         numBoids = simParams.NumBoids;
+        boids = new Boid[numBoids];
         initSearch();
     }
 

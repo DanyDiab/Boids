@@ -58,6 +58,7 @@ public class Boid : MonoBehaviour{
     }
 
     public void disable() {
+        search.RemoveBoid(myIndex);
         boid.SetActive(false);
     }
     
