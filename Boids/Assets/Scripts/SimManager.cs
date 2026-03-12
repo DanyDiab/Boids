@@ -71,7 +71,7 @@ public class SimManager : MonoBehaviour{
     }
 
     void OnDrawGizmos() {
-        if(!gizmoStruct.showGrid) return;
+        if(!gizmoStruct.showGrid || simParams.CurrSearchAlgo != SearchAlgos.UNIFORMGRID) return;
         Gizmos.color = gizmoStruct.cellColor;
         int cellSize = simParams.CellSize;
         int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;

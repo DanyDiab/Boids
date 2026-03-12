@@ -86,7 +86,7 @@ public class Boid : MonoBehaviour{
         }
 
         if (gizmoStruct.showNeighbors) {
-            drawNeighbors(transform.position,neighbors);
+            drawNeighbors(transform.position,neighbors, numNeighbors);
         }
         SimManager.updateRunningTotals(numNeighbors,numChecks,totalTime);
         
@@ -182,8 +182,9 @@ public class Boid : MonoBehaviour{
     }
 
 
-    private void drawNeighbors(Vector3 myPos, Boid[] neighbors) {
-        foreach(Boid neighbor in neighbors) {
+    private void drawNeighbors(Vector3 myPos, Boid[] neighbors, int numNeighbors) {
+        for(int i = 0; i < numNeighbors; i++) {
+            Boid neighbor = neighbors[i];
             Vector3 neighborPos = neighbor.gameObject.transform.position;
             Debug.DrawLine(myPos, neighborPos, gizmoStruct.neighborColor);
         }
