@@ -18,7 +18,7 @@ public class BoidManager : MonoBehaviour{
     public static event BoidSpawnEvent OnBoidSpawn;
 
 
-    void Start(){
+    void Awake(){
         init();
         boids = new Boid[numBoids];
         boidPool = new List<Boid>();
@@ -26,6 +26,7 @@ public class BoidManager : MonoBehaviour{
         OnBoidSpawn += init;
     }
     void init() {
+        width = simParams.SimBoundRadius;
         numBoids = simParams.NumBoids;
         initSearch();
     }
@@ -49,15 +50,16 @@ public class BoidManager : MonoBehaviour{
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame) {
             clearBoids();
+            init();
             spawnBoids();
         }
     }
 
     (Vector3, Quaternion) getRandPosRot() {
         float halfWidth = width / 2;
-        float posX = halfWidth - UnityEngine.Random.Range(0,width);
-        float posZ = halfWidth - UnityEngine.Random.Range(0,width);
-        float randRot = UnityEngine.Random.Range(0,359);
+        float posX = halfWidth - Random.Range(0,width);
+        float posZ = halfWidth - Random.Range(0,width);
+        float randRot = Random.Range(0,359);
         Vector3 pos = new Vector3(posX,1,posZ);
         Quaternion rotation = Quaternion.Euler(0,randRot,0);
         return(pos,rotation);
@@ -67,12 +69,13 @@ public class BoidManager : MonoBehaviour{
     void spawnBoids() {
         OnBoidSpawn?.Invoke();
 
-        width = simParams.SimBoundRadius;
 
         int poolCount = boidPool.Count;
         int numGrabFromPool = Mathf.Min(numBoids,poolCount);
+        Debug.Log("need to grab " + numGrabFromPool + " Boids from pool");
+
         if(numGrabFromPool > 0) {
-            int lastElement = boidPool.Count - 1;
+            int lastElement = poolCount - 1;
             for(int i = 0; i < numGrabFromPool; i++) {
                 Boid boid = boidPool[lastElement];
                 boid.init(i,boid.gameObject,search, boidInfo, simParams);
@@ -84,7 +87,7 @@ public class BoidManager : MonoBehaviour{
                 lastElement--;
             }
         }
-
+        Debug.Log("need to make " + (numBoids -numGrabFromPool) + " Boids");
         for(int i = numGrabFromPool; i < numBoids; i++) {
             (Vector3 pos, Quaternion rot) = getRandPosRot();
             GameObject boidGO = Instantiate(boidPrefab,pos,Quaternion.identity);
@@ -103,6 +106,4 @@ public class BoidManager : MonoBehaviour{
             boids[i] = null;
         }
     }
-
-
 }

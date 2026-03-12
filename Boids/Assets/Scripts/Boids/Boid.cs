@@ -1,7 +1,7 @@
 using System;
 using Unity.VisualScripting;
 using UnityEngine;
-
+using Stopwatch = System.Diagnostics.Stopwatch;
 public class Boid : MonoBehaviour{
     float speed;
     float seperationRadius;
@@ -25,7 +25,6 @@ public class Boid : MonoBehaviour{
     SimulationParameters simParams;
     
     GizmoStruct gizmoStruct;
-
 
     private void grabValuesFromSO() {
         speed = boidInfo.Speed;
@@ -71,8 +70,10 @@ public class Boid : MonoBehaviour{
         int numNeighbors;
         int numChecks;
         float maxRadius = Math.Max(Math.Max(seperationRadius,alignmentRadius),cohesionRadius);
+        Stopwatch stopwatch = Stopwatch.StartNew();
         (numNeighbors, numChecks, neighbors) = search.FindNeighbors(myIndex,maxRadius);
-
+        stopwatch.Stop();
+        float totalTime = (float)stopwatch.Elapsed.TotalMilliseconds;
         if(numNeighbors > 0) {
             currHeading = calculateForces(numNeighbors,neighbors);
         }
@@ -86,8 +87,7 @@ public class Boid : MonoBehaviour{
         if (gizmoStruct.showNeighbors) {
             drawNeighbors(transform.position,neighbors);
         }
-
-        SimManager.updateRunningTotals(numNeighbors,numChecks);
+        SimManager.updateRunningTotals(numNeighbors,numChecks,totalTime);
         
         search.UpdatePosition(myIndex,transform.position);
     }

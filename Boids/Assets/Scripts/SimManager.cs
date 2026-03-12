@@ -19,6 +19,8 @@ public class SimManager : MonoBehaviour{
     static float density;
     static int numCounted;
     static int numBoids;
+    static float totalMs;
+    static float msAvg;
 
     void Start() {
         init();
@@ -44,22 +46,26 @@ public class SimManager : MonoBehaviour{
         text += "Num Boids: " + numBoids + "\n";
         text += "Density: " + density + "\n";
         text += "Total Checks: " + totalChecksText + "\n";
-        text += "Average Checks Per Boid: " + averageNumChecks + "\n"; 
+        text += "Average Checks Per Boid: " + averageNumChecks + "\n";
+        text += "MS taken to do neighbor search: " + msAvg + "\n"; 
         TMPtext.text = text;
     }
 
 
-    public static void updateRunningTotals(int numNeighbors, int numChecks) {
+    public static void updateRunningTotals(int numNeighbors, int numChecks, float msTaken) {
         numCounted++;
         totalNeighbors += numNeighbors;
         totalChecksRunningTotal += numChecks;
+        totalMs += msTaken;
         if(numCounted == numBoids) {
+            msAvg = totalMs / numBoids;
             density = (float) totalNeighbors / numBoids;
             totalChecksText = totalChecksRunningTotal;
             averageNumChecks = (float) totalChecksRunningTotal / numBoids;
 
             totalChecksRunningTotal = 0;
             totalNeighbors = 0;
+            totalMs = 0;
             numCounted = 0;
         }
     }

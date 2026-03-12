@@ -800,6 +800,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoidManager
   boidPrefab: {fileID: 7466432339302856458, guid: a681f4e4294ae8449b13c2fcec2ecdc7, type: 3}
+  currSearchAlgo: 1
   boidInfo: {fileID: 11400000, guid: 154346b5e865a25428c01c53d2966e8c, type: 2}
   simParams: {fileID: 11400000, guid: abc7d79c43c2a1f4bb436b20d1de1741, type: 2}
 --- !u!4 &1079873269
