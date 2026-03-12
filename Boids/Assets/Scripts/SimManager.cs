@@ -73,10 +73,12 @@ public class SimManager : MonoBehaviour{
     void OnDrawGizmos() {
         if(!gizmoStruct.showGrid) return;
         Gizmos.color = gizmoStruct.cellColor;
-        float sizePerCell = simBoundRadius / 20f;
-        for(int i = 0; i < 400; i++) {
-            int rowNumber = i / 20;
-            int colNumber = i % 20;
+        int cellSize = simParams.CellSize;
+        int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;
+        float sizePerCell = simBoundRadius / numCellsRow;
+        for(int i = 0; i < numCellsRow * numCellsRow; i++) {
+            int rowNumber = i / numCellsRow;
+            int colNumber = i % numCellsRow;
             float xPos = (-simBoundRadius / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
             float zPos = (-simBoundRadius / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
             Vector3 finalPosition = new Vector3(xPos, 0, zPos);

@@ -3,6 +3,5 @@ This is a boids simulation. The purpose of this project is to compare Quadtree a
 
 
 ## To Do
-- Add MS to sim stats
 - Implement Quad Tree
 

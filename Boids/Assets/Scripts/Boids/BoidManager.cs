@@ -8,7 +8,6 @@ public class BoidManager : MonoBehaviour{
     Boid[] boids;
     [SerializeField] GameObject boidPrefab;
     IBoidSearch search;
-    [SerializeField] SearchAlgos currSearchAlgo;
     List<Boid> boidPool;
     float width;
     [SerializeField] BoidInfo boidInfo;
@@ -32,13 +31,13 @@ public class BoidManager : MonoBehaviour{
     }
 
     void initSearch() {
-        switch (currSearchAlgo) {
+        switch (simParams.CurrSearchAlgo) {
             case (SearchAlgos.BF): {
                 search = new BFNeighborSearch(numBoids);
                 break;
             }
             case (SearchAlgos.UNIFORMGRID): {
-                search = new UniformGridSearch(numBoids,10,width);
+                search = new UniformGridSearch(numBoids,simParams.CellSize,width);
                 break;
             }
 
