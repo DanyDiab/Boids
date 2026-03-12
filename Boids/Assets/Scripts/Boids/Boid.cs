@@ -16,7 +16,7 @@ public class Boid : MonoBehaviour{
     float outsideTimer;
 
     IBoidSearch search;
-    Vector3 currHeading;
+    [SerializeField] Vector3 currHeading;
     int myIndex;
     GameObject boid; 
 
@@ -50,9 +50,8 @@ public class Boid : MonoBehaviour{
         this.search = search;
         this.boidInfo = boidInfo;
         this.simParams = simParams;
-        Vector2 rand = UnityEngine.Random.insideUnitCircle;
-        CurrHeading = new Vector3(rand.x,0,rand.y);
-        currHeading = Vector3.back;
+        Vector2 rand = UnityEngine.Random.onUnitSphere;
+        currHeading = new Vector3(rand.x,0,rand.y).normalized;
         outsideTimer = 0;
         grabValuesFromSO();
     }
@@ -75,6 +74,7 @@ public class Boid : MonoBehaviour{
         (numNeighbors, numChecks, neighbors) = search.FindNeighbors(myIndex,maxRadius);
         stopwatch.Stop();
         float totalTime = (float)stopwatch.Elapsed.TotalMilliseconds;
+
         if(numNeighbors > 0) {
             currHeading = calculateForces(numNeighbors,neighbors);
         }
