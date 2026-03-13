@@ -1,6 +1,6 @@
 public enum SearchAlgos {
     
     BF,
-    UNIFORMGRID
-
+    UNIFORMGRID,
+    QUADTREE
 };

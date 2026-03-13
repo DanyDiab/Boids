@@ -40,6 +40,10 @@ public class BoidManager : MonoBehaviour{
                 search = new UniformGridSearch(numBoids,simParams.CellSize,width);
                 break;
             }
+            case (SearchAlgos.QUADTREE): {
+                search = new QuadTreeSearch(numBoids,simParams.LeafCapacity, width);
+                break;       
+            }
 
         }
     }

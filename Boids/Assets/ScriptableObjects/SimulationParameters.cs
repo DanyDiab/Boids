@@ -13,6 +13,9 @@ public class SimulationParameters : ScriptableObject{
 
     [ShowIf("currSearchAlgo", SearchAlgos.UNIFORMGRID)]
     [SerializeField] int cellSize;
+
+    [ShowIf("currSearchAlgo", SearchAlgos.QUADTREE)]
+    [SerializeField] int leafCapacity;
     
     [SerializeField] UniformGridSearch search;
 
@@ -20,6 +23,8 @@ public class SimulationParameters : ScriptableObject{
     [SerializeField] GizmoStruct gizmoStruct;
 
     public int NumBoids { get => numBoids; set => numBoids = value; }
+    public int LeafCapacity { get => leafCapacity; set => leafCapacity = value; }
+
     public float SimBoundRadius { get => simBoundRadius; set => simBoundRadius = value; }
     public int CellSize { get => cellSize; set => cellSize = value; }
 
