@@ -43,7 +43,6 @@ public class QuadTreeSearch : IBoidSearch {
     public void AddBoid(int index, Vector3 position, Boid boid) {
         boidPositions[index] = position;
         boids[index] = boid;
-
         findLeaf(position, index);
 
     }
@@ -130,13 +129,12 @@ public class QuadTreeSearch : IBoidSearch {
         return xGood && zGood;
     }
 
-
     public void RemoveBoid(int index) {
-        
+        boids[index] = null;
     }
 
     public void UpdatePosition(int index, Vector3 position) {
-        
+        boidPositions[index] = position;
     }
 
     public (int numNeighbors, int numChecks, Boid[] neighbors) FindNeighbors(int index, float radius) {

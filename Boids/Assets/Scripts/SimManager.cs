@@ -71,23 +71,35 @@ public class SimManager : MonoBehaviour{
     }
 
     void OnDrawGizmos() {
-        if(!gizmoStruct.showGrid || simParams.CurrSearchAlgo != SearchAlgos.UNIFORMGRID) return;
+        if(!gizmoStruct.showGrid) return;
         Gizmos.color = gizmoStruct.cellColor;
-        int cellSize = simParams.CellSize;
-        int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;
-        float sizePerCell = simBoundRadius / numCellsRow;
-        for(int i = 0; i < numCellsRow * numCellsRow; i++) {
-            int rowNumber = i / numCellsRow;
-            int colNumber = i % numCellsRow;
-            float xPos = (-simBoundRadius / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
-            float zPos = (-simBoundRadius / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
-            Vector3 finalPosition = new Vector3(xPos, 0, zPos);
-            Gizmos.DrawWireCube(finalPosition, new Vector3(sizePerCell, 0, sizePerCell));
+        if(simParams.CurrSearchAlgo == SearchAlgos.UNIFORMGRID) {
+            int cellSize = simParams.CellSize;
+            int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;
+            float sizePerCell = simBoundRadius / numCellsRow;
+            for(int i = 0; i < numCellsRow * numCellsRow; i++) {
+                int rowNumber = i / numCellsRow;
+                int colNumber = i % numCellsRow;
+                float xPos = (-simBoundRadius / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
+                float zPos = (-simBoundRadius / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
+                Vector3 finalPosition = new Vector3(xPos, 0, zPos);
+                Gizmos.DrawWireCube(finalPosition, new Vector3(sizePerCell, 0, sizePerCell));
+            }
+            Gizmos.color = gizmoStruct.permiterColor;
+            Gizmos.DrawWireCube(Vector3.zero,new Vector3(simBoundRadius, 0, simBoundRadius));
         }
-        Gizmos.color = gizmoStruct.permiterColor;
-        Gizmos.DrawWireCube(Vector3.zero,new Vector3(simBoundRadius, 0, simBoundRadius));
+        if(simParams.CurrSearchAlgo == SearchAlgos.QUADTREE) {
+            
+        }
     }
+//  0 -> 1 (1,2,3,4)
+//  4 -> 20 (20,21,22,23)
+//  3 -> 5
 
 
+// start at root
+//  if Branch
+//      Draw 4 quadrents
+//      Recurse to 4 children
 
 }
