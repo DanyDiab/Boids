@@ -44,68 +44,79 @@ public class QuadTreeSearch : IBoidSearch {
         boidPositions[index] = position;
         boids[index] = boid;
 
-        (Node parentNode, bool success) = findLeaf(position);
-        if (!success) {
-            Debug.LogWarning("No Cell Found for boid add");
+        findLeaf(position, index);
+
+    }
+
+
+    void findLeaf(Vector3 position, int index) {
+        Vector2 startingBoxDims = new Vector2(simBoundRadius,simBoundRadius);
+        findLeafRecur(position, 1, startingBoxDims, new Vector2(-simBoundRadius / 2,-simBoundRadius / 2), 0, index);
+    }
+    
+    void findLeafRecur(Vector3 pos, int depth, Vector2 boxDims, Vector2 offset, int currNodeIndex, int index) {
+        if (!isPointInSquare(pos, boxDims, offset)) {
             return;
         }
+        float width = boxDims.x / 2;
+        float height = boxDims.y / 2;
+        Vector2 newBoxDims = new Vector2(width,height);
 
-    }
+        Vector2 tl = offset;
+        Vector2 tr = new Vector2(offset.x + width, offset.y);
+        Vector2 bl = new Vector2(offset.x, offset.y + height);
+        Vector2 br = new Vector2(offset.x + width, offset.y + height);
 
+        // leaf node
+        Node currNode = Nodes[currNodeIndex];
+        if(currNode.FirstChild == -1) {
+             currNode.BoidIDs.Add(index);
+            if(currNode.BoidIDs.Count <= leafCapacity) {
+                Nodes[currNodeIndex] = currNode;
+                return;
+            }
+            // split
+            
+            Node newtlNode = new Node(-1);
+            Node newtrNode = new Node(-1);
+            Node newblNode = new Node(-1);
+            Node newbrNode = new Node(-1);
 
-    (Node, bool) findLeaf(Vector3 position) {
-        Vector2 startingBoxDims = new Vector2(simBoundRadius,simBoundRadius);
-        return findLeafRecur(position, 1, startingBoxDims, Vector2.zero, root);
-    }
+            currNode.FirstChild = Nodes.Count;
 
-    (Node,bool) findLeafRecur(Vector3 pos, int depth, Vector2 boxDims, Vector2 offset, Node currNode) {
-        if (isPointInSquare(pos, boxDims, offset)){
-            float width = boxDims.x / 2;
-            float height = boxDims.y / 2;
-            Vector2 newBoxDims = new Vector2(width,height);
+            Nodes.Add(newtlNode);
+            Nodes.Add(newtrNode);
+            Nodes.Add(newblNode);
+            Nodes.Add(newbrNode);
 
-            Vector2 tl = offset;
-            Vector2 tr = new Vector2(offset.x + width, offset.y);
-            Vector2 bl = new Vector2(offset.x, offset.y + height);
-            Vector2 br = new Vector2(offset.x + width, offset.y + height);
-
-            if(currNode.FirstChild == -1) {
-                if(currNode.BoidIDs.Count <= leafCapacity) {
-                    return (currNode, true);
+            // redistribute boids
+            foreach(int boidID in currNode.BoidIDs) {
+                Vector3 boidPos = boidPositions[boidID];
+                if (isPointInSquare(boidPos, newBoxDims, tl)) {
+                    newtlNode.BoidIDs.Add(boidID);
                 }
-                // split
-                else {
-                    Node newtlNode = new Node(-1);
-                    Node newtrNode = new Node(-1);
-                    Node newblNode = new Node(-1);
-                    Node newbrNode = new Node(-1);
-
+                if (isPointInSquare(boidPos, newBoxDims, tr)) {
+                    newtrNode.BoidIDs.Add(boidID);
+                }
+                if (isPointInSquare(boidPos, newBoxDims, bl)) {
+                    newblNode.BoidIDs.Add(boidID);
+                }
+                if (isPointInSquare(boidPos, newBoxDims, br)) {
+                    newbrNode.BoidIDs.Add(boidID);
                 }
             }
-
-
-
-
-
-            int firstChild = currNode.FirstChild;
-            Node tlNode = Nodes[firstChild];
-            Node trNode = Nodes[firstChild + 1];
-            Node blNode = Nodes[firstChild + 2];
-            Node brNode = Nodes[firstChild + 3];
-
-            (Node tlNodeFound, bool tlRes) = findLeafRecur(pos,depth + 1,newBoxDims,tl,tlNode);
-            (Node trNodeFound, bool trRes) = findLeafRecur(pos,depth + 1,newBoxDims,tr,trNode);
-            (Node blNodeFound, bool blRes) = findLeafRecur(pos,depth + 1,newBoxDims,bl,blNode);
-            (Node brNodeFound, bool brRes) = findLeafRecur(pos,depth + 1,newBoxDims,br,brNode);
-
-            if(tlRes) return (tlNodeFound, tlRes);
-            if(trRes) return (trNodeFound, trRes);
-            if(blRes) return (blNodeFound, blRes);
-            if(brRes) return (brNodeFound, brRes);
-
+            currNode.BoidIDs.Clear();
+            Nodes[currNodeIndex] = currNode;
+            return;
         }
-        // shouldnt reach here
-        return (new Node(), false);
+        
+        // branch recursive step
+        int firstChild = currNode.FirstChild;
+
+        findLeafRecur(pos,depth + 1,newBoxDims,tl,firstChild,index);
+        findLeafRecur(pos,depth + 1,newBoxDims,tr,firstChild + 1,index);
+        findLeafRecur(pos,depth + 1,newBoxDims,bl,firstChild + 2,index);
+        findLeafRecur(pos,depth + 1,newBoxDims,br,firstChild + 3,index);
     }
 
 
