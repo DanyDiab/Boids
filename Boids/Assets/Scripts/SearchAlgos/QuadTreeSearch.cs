@@ -25,6 +25,7 @@ struct Node {
 // For more performance, should be swapped to flat arrays
 public class QuadTreeSearch : IBoidSearch {
     Boid[] boids;
+    Vector3[] boidPositions;
     int leafCapacity;
     float simBoundRadius;
     List<Node> Nodes;
@@ -32,6 +33,7 @@ public class QuadTreeSearch : IBoidSearch {
 
     public QuadTreeSearch(int numBoids, int leafCapacity, float simBoundRadius) {
         boids = new Boid[numBoids];
+        boidPositions = new Vector3[numBoids];
         this.leafCapacity = leafCapacity;
         this.simBoundRadius = simBoundRadius;
         Node node = new Node(0,-1);
@@ -40,8 +42,21 @@ public class QuadTreeSearch : IBoidSearch {
     }
 
     public void AddBoid(int index, Vector3 position, Boid boid) {
+        boidPositions[index] = position;
+        boids[index] = boid;
 
+        (Node parentNode, bool success) = findLeaf(position);
+        if (!success) {
+            Debug.LogWarning("No Cell Found for boid add");
+            return;
+        }
+        if(parentNode.BoidIDs.Count + 1 <= leafCapacity) {
+            parentNode.BoidIDs.Add(index);
+        }
+        else {
+            // we need to split here
 
+        }
     }
 
 
@@ -52,14 +67,13 @@ public class QuadTreeSearch : IBoidSearch {
 
     (Node,bool) findLeafRecur(Vector3 pos, int depth, Vector2 boxDims, Vector2 offset, Node currNode) {
         if (isPointInSquare(pos, boxDims, offset)){
-            if(currNode.BoidIDs.Count < leafCapacity) {
+            if(currNode.BoidIDs.Count <= leafCapacity) {
                 return (currNode, true);
             }
             float width = boxDims.x / depth;
             float height = boxDims.y / depth;
 
             Vector2 newBoxDims = new Vector2(width,height);
-
 
             Vector2 tl = offset;
             Vector2 tr = new Vector2(offset.x + width, offset.y);
@@ -71,7 +85,7 @@ public class QuadTreeSearch : IBoidSearch {
             Node trNode = Nodes[firstChild + 1];
             Node blNode = Nodes[firstChild + 2];
             Node brNode = Nodes[firstChild + 3];
-            
+
             (Node tlNodeFound, bool tlRes)  = findLeafRecur(pos,depth + 1,newBoxDims,tl,tlNode);
             (Node trNodeFound, bool trRes)  = findLeafRecur(pos,depth + 1,newBoxDims,tr,trNode);
             (Node blNodeFound, bool blRes)  = findLeafRecur(pos,depth + 1,newBoxDims,bl,blNode);
