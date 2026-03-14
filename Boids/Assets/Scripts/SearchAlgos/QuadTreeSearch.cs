@@ -14,20 +14,20 @@ public class QuadTreeSearch : IBoidSearch {
     Vector3[] boidPositions;
     int leafCapacity;
     float simBoundRadius;
-    List<Node> Nodes;
+    List<Node> nodes;
     SimulationParameters simParams;
     int numBoids;
 
     public QuadTreeSearch(int numBoids, int leafCapacity, float simBoundRadius, SimulationParameters simParams) {
         boids = new Boid[numBoids];
         boidPositions = new Vector3[numBoids];
-        Nodes = new List<Node>();
+        nodes = new List<Node>();
         this.leafCapacity = leafCapacity;
         this.simBoundRadius = simBoundRadius;
         this.simParams = simParams;
         Node node = new Node(-1);
-        Nodes.Add(node);
-        numBoids = simParams.NumBoids;
+        nodes.Add(node);
+        this.numBoids = simParams.NumBoids;
     }
 
     public void AddBoid(int index, Vector3 position, Boid boid) {
@@ -57,11 +57,11 @@ public class QuadTreeSearch : IBoidSearch {
         Vector2 br = new Vector2(offset.x + width, offset.y + height);
 
         // leaf node
-        Node currNode = Nodes[currNodeIndex];
+        Node currNode = nodes[currNodeIndex];
         if(currNode.FirstChild == -1) {
             currNode.BoidIDs.Add(index);
             if(currNode.BoidIDs.Count <= leafCapacity) {
-                Nodes[currNodeIndex] = currNode;
+                nodes[currNodeIndex] = currNode;
                 return;
             }
             // split
@@ -71,12 +71,12 @@ public class QuadTreeSearch : IBoidSearch {
             Node newblNode = new Node(-1);
             Node newbrNode = new Node(-1);
 
-            currNode.FirstChild = Nodes.Count;
+            currNode.FirstChild = nodes.Count;
 
-            Nodes.Add(newtlNode);
-            Nodes.Add(newtrNode);
-            Nodes.Add(newblNode);
-            Nodes.Add(newbrNode);
+            nodes.Add(newtlNode);
+            nodes.Add(newtrNode);
+            nodes.Add(newblNode);
+            nodes.Add(newbrNode);
 
             // redistribute boids
             foreach(int boidID in currNode.BoidIDs) {
@@ -95,7 +95,7 @@ public class QuadTreeSearch : IBoidSearch {
                 }
             }
             currNode.BoidIDs.Clear();
-            Nodes[currNodeIndex] = currNode;
+            nodes[currNodeIndex] = currNode;
             return;
         }
         
@@ -118,11 +118,14 @@ public class QuadTreeSearch : IBoidSearch {
     }
 
     void buildQuadTree() {
-        Nodes.Clear();
+        nodes.Clear();
+        Node node = new Node(-1);
+        nodes.Add(node);
         for(int i = 0; i < numBoids; i++) {
             Vector3 pos = boidPositions[i];
             addBoidToTree(pos,i);
         }
+        simParams.Nodes = nodes;
     }
 
     public void RemoveBoid(int index) {
