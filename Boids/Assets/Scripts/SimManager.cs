@@ -70,6 +70,11 @@ public class SimManager : MonoBehaviour{
         }
     }
 
+    void drawQuadTreeCells() {
+        
+    }
+
+
     void OnDrawGizmos() {
         if(!gizmoStruct.showGrid) return;
         Gizmos.color = gizmoStruct.cellColor;

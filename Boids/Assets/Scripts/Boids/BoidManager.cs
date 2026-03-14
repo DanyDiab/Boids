@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using QuadTree;
 
 public class BoidManager : MonoBehaviour{
     int numBoids;
@@ -41,7 +42,7 @@ public class BoidManager : MonoBehaviour{
                 break;
             }
             case (SearchAlgos.QUADTREE): {
-                search = new QuadTreeSearch(numBoids,simParams.LeafCapacity, width);
+                search = new QuadTreeSearch(numBoids,simParams.LeafCapacity, width, simParams);
                 break;       
             }
 
@@ -75,7 +76,6 @@ public class BoidManager : MonoBehaviour{
 
         int poolCount = boidPool.Count;
         int numGrabFromPool = Mathf.Min(numBoids,poolCount);
-        Debug.Log("need to grab " + numGrabFromPool + " Boids from pool");
 
         if(numGrabFromPool > 0) {
             int lastElement = poolCount - 1;
@@ -90,7 +90,6 @@ public class BoidManager : MonoBehaviour{
                 lastElement--;
             }
         }
-        Debug.Log("need to make " + (numBoids -numGrabFromPool) + " Boids");
         for(int i = numGrabFromPool; i < numBoids; i++) {
             (Vector3 pos, Quaternion rot) = getRandPosRot();
             GameObject boidGO = Instantiate(boidPrefab,pos,Quaternion.identity);

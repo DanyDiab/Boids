@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using NaughtyAttributes;
+using QuadTree;
+using System.Collections.Generic;
 
 [CreateAssetMenu(fileName = "SimulationParameters", menuName = "Scriptable Objects/SimulationParameters")]
 public class SimulationParameters : ScriptableObject{
@@ -16,6 +18,9 @@ public class SimulationParameters : ScriptableObject{
 
     [ShowIf("currSearchAlgo", SearchAlgos.QUADTREE)]
     [SerializeField] int leafCapacity;
+
+    [ShowIf("currSearchAlgo", SearchAlgos.QUADTREE)]
+    [SerializeField] List<Node> nodes;
     
     [SerializeField] UniformGridSearch search;
 
@@ -27,6 +32,7 @@ public class SimulationParameters : ScriptableObject{
 
     public float SimBoundRadius { get => simBoundRadius; set => simBoundRadius = value; }
     public int CellSize { get => cellSize; set => cellSize = value; }
+    public List<Node> Nodes { get => nodes; set => nodes = value; }
 
     public SearchAlgos CurrSearchAlgo {get => currSearchAlgo; set => currSearchAlgo = value; }
     public UniformGridSearch Search { get => search; set => search = value; }

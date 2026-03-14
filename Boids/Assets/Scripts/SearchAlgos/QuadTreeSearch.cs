@@ -1,54 +1,44 @@
 using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-
 // -1 for no child
 
-struct Node {
-    int firstChild;
-    List<int> boidIDs;
-    public Node(int firstChild) {
-        this.firstChild = firstChild;
-        boidIDs = new List<int>();
-    }
 
-    public List<int> BoidIDs {get => boidIDs; set => boidIDs = value; }
-    public int FirstChild {get => firstChild; set => firstChild = value; }
-
-
-}
 
 // This current QuadTree is implemented using a tpyical tree structure.
 // For more performance, should be swapped to flat arrays
+namespace QuadTree {
+    
 public class QuadTreeSearch : IBoidSearch {
     Boid[] boids;
     Vector3[] boidPositions;
     int leafCapacity;
     float simBoundRadius;
     List<Node> Nodes;
-    Node root;
+    SimulationParameters simParams;
+    int numBoids;
 
-    public QuadTreeSearch(int numBoids, int leafCapacity, float simBoundRadius) {
+    public QuadTreeSearch(int numBoids, int leafCapacity, float simBoundRadius, SimulationParameters simParams) {
         boids = new Boid[numBoids];
         boidPositions = new Vector3[numBoids];
         Nodes = new List<Node>();
         this.leafCapacity = leafCapacity;
         this.simBoundRadius = simBoundRadius;
+        this.simParams = simParams;
         Node node = new Node(-1);
         Nodes.Add(node);
-        root = node;
+        numBoids = simParams.NumBoids;
     }
 
     public void AddBoid(int index, Vector3 position, Boid boid) {
         boidPositions[index] = position;
         boids[index] = boid;
-        findLeaf(position, index);
+        addBoidToTree(position, index);
 
     }
 
 
-    void findLeaf(Vector3 position, int index) {
+    void addBoidToTree(Vector3 position, int index) {
         Vector2 startingBoxDims = new Vector2(simBoundRadius,simBoundRadius);
         findLeafRecur(position, 1, startingBoxDims, new Vector2(-simBoundRadius / 2,-simBoundRadius / 2), 0, index);
     }
@@ -69,7 +59,7 @@ public class QuadTreeSearch : IBoidSearch {
         // leaf node
         Node currNode = Nodes[currNodeIndex];
         if(currNode.FirstChild == -1) {
-             currNode.BoidIDs.Add(index);
+            currNode.BoidIDs.Add(index);
             if(currNode.BoidIDs.Count <= leafCapacity) {
                 Nodes[currNodeIndex] = currNode;
                 return;
@@ -118,8 +108,6 @@ public class QuadTreeSearch : IBoidSearch {
         findLeafRecur(pos,depth + 1,newBoxDims,br,firstChild + 3,index);
     }
 
-
-
     bool isPointInSquare(Vector3 pos, Vector2 boxDims, Vector2 offset) {
         Vector2 pos2D = new Vector2(pos.x,pos.z);
 
@@ -127,6 +115,14 @@ public class QuadTreeSearch : IBoidSearch {
         bool zGood = pos2D.y >= offset.y && pos2D.y < offset.y + boxDims.y;
 
         return xGood && zGood;
+    }
+
+    void buildQuadTree() {
+        Nodes.Clear();
+        for(int i = 0; i < numBoids; i++) {
+            Vector3 pos = boidPositions[i];
+            addBoidToTree(pos,i);
+        }
     }
 
     public void RemoveBoid(int index) {
@@ -138,6 +134,11 @@ public class QuadTreeSearch : IBoidSearch {
     }
 
     public (int numNeighbors, int numChecks, Boid[] neighbors) FindNeighbors(int index, float radius) {
+        if(index == 0) {
+            buildQuadTree();
+        }
         return (0,0,null);
     }
+}
+
 }
