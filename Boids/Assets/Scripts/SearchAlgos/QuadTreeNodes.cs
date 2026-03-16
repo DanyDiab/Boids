@@ -11,6 +11,6 @@ namespace QuadTree {
 
         public List<int> BoidIDs {get => boidIDs; set => boidIDs = value; }
         public int FirstChild {get => firstChild; set => firstChild = value; }
-    } 
+    }
 }
 

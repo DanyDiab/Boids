@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using Unity.Mathematics;
 using UnityEngine;
 // -1 for no child
@@ -20,6 +21,8 @@ namespace QuadTree {
         int numBoids;
         Boid[] currNeighbors;
         int quadrentChecks;
+        Node[] nodePool;
+        int poolCount;
 
         public QuadTreeSearch(int numBoids, int leafCapacity, float simBoundRadius, SimulationParameters simParams) {
             boids = new Boid[numBoids];
@@ -27,6 +30,9 @@ namespace QuadTree {
             nodes = new List<Node>();
             this.leafCapacity = leafCapacity;
             this.simBoundRadius = simBoundRadius;
+            int maxNumNodes = 4 * numBoids / leafCapacity * 2;
+            nodePool = new Node[maxNumNodes];
+            poolCount = 0;
             this.simParams = simParams;
             Node node = new Node(-1);
             nodes.Add(node);
@@ -70,10 +76,13 @@ namespace QuadTree {
                 }
                 // split
                 
-                Node newtlNode = new Node(-1);
-                Node newtrNode = new Node(-1);
-                Node newblNode = new Node(-1);
-                Node newbrNode = new Node(-1);
+
+                Node newtlNode, newtrNode, newblNode, newbrNode;
+
+                newtlNode = grabFromPool(-1);
+                newtrNode = grabFromPool(-1);
+                newblNode = grabFromPool(-1);
+                newbrNode = grabFromPool(-1);
 
                 currNode.FirstChild = nodes.Count;
 
@@ -122,8 +131,9 @@ namespace QuadTree {
         }
 
         void buildQuadTree() {
+            addAllNodesToPool();
             nodes.Clear();
-            Node node = new Node(-1);
+            Node node = grabFromPool(-1);
             nodes.Add(node);
             for(int i = 0; i < numBoids; i++) {
                 Vector3 pos = boidPositions[i];
@@ -218,5 +228,26 @@ namespace QuadTree {
             }
             return (numNeighbors,numChecks,currNeighbors);
         }
+
+
+    // grabs a new node if available, otherwise allocates
+        Node grabFromPool(int firstChild) {
+            if(poolCount == 0) {
+                return new Node(-1);
+            }
+            poolCount--;
+            nodePool[poolCount].FirstChild = firstChild;
+            return nodePool[poolCount];
+        }
+
+        void addAllNodesToPool() {
+            for(int i = 0; i < nodes.Count; i++) {
+                nodes[i].BoidIDs.Clear();
+                nodePool[poolCount++] = nodes[i];
+            }
+        }
+
+
+
     }
 }
