@@ -23,6 +23,7 @@ namespace QuadTree {
         int quadrentChecks;
         Node[] nodePool;
         int poolCount;
+        List<int> foundBoids;
 
         public QuadTreeSearch(int numBoids, int leafCapacity, float simBoundRadius, SimulationParameters simParams) {
             boids = new Boid[numBoids];
@@ -39,6 +40,7 @@ namespace QuadTree {
             this.numBoids = simParams.NumBoids;
             currNeighbors = new Boid[numBoids - 1];
             quadrentChecks = 0;
+            foundBoids = new List<int>();
         }
 
         public void AddBoid(int index, Vector3 position, Boid boid) {
@@ -160,8 +162,8 @@ namespace QuadTree {
             float cy = Mathf.Clamp(pos2.y,min.y,max.y);
 
             Vector2 clamped = new Vector2(cx,cy);
-            float distance = (pos2 - clamped).magnitude;
-            if(distance * distance < radius * radius) {
+            float distance = (pos2 - clamped).sqrMagnitude;
+            if(distance < radius * radius) {
                 return true;
             }
             return false;
@@ -207,21 +209,22 @@ namespace QuadTree {
             }
             Vector3 position = boidPositions[index];
             Vector2 boxDims = new Vector2(simBoundRadius,simBoundRadius);
-            List<int> result = new List<int>();
-            FindTouchingLeafs(position,radius,0,boxDims,new Vector2(-simBoundRadius / 2,-simBoundRadius / 2),result);
+            
+            foundBoids.Clear();
+            FindTouchingLeafs(position,radius,0,boxDims,new Vector2(-simBoundRadius / 2,-simBoundRadius / 2),foundBoids);
 
             int numNeighbors = 0;
             int numChecks = 0;
-            int count = result.Count;
+            int count = foundBoids.Count;
             for(int i = 0; i < count; i++) {
-                int currBoidID = result[i];
+                int currBoidID = foundBoids[i];
                 if(currBoidID == index) continue;
                 numChecks++;
                 Boid currBoid = boids[currBoidID];
                 Vector3 currBoidPos = boidPositions[currBoidID];
 
-                float dist = (currBoidPos - position).magnitude;
-                if(dist * dist < radius * radius) {
+                float dist = (currBoidPos - position).sqrMagnitude;
+                if(dist < radius * radius) {
                     currNeighbors[numNeighbors] = currBoid;
                     numNeighbors++;
                 }
