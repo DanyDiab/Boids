@@ -12,16 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a70e6f0e2caf34b4d89c760ae003911b, type: 3}
   m_Name: SimParams
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
-  numBoids: 5000
-  simBoundRadius: 1000
+  numBoids: 1000
+  simBoundRadius: 500
   currSearchAlgo: 2
   cellSize: 12
-  leafCapacity: 5
+  leafCapacity: 20
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}
-    cellColor: {r: 0.9528302, g: 0.03187946, b: 0.013483422, a: 1}
+    cellColor: {r: 0, g: 0, b: 0, a: 0.6039216}
     headingColor: {r: 0, g: 0, b: 0, a: 1}
-    neighborColor: {r: 0, g: 0, b: 0, a: 1}
-    showBoidHeading: 1
-    showGrid: 1
+    neighborColor: {r: 0.36667857, g: 0.754717, b: 0.7547169, a: 0.3764706}
+    showBoidHeading: 0
+    showGrid: 0
     showNeighbors: 1

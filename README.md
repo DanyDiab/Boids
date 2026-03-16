@@ -4,4 +4,4 @@ This is a boids simulation. The purpose of this project is to compare Quadtree a
 
 ## To Do
 - Implement Quad Tree
-
+- Add Node Pooling to Quad Tree
