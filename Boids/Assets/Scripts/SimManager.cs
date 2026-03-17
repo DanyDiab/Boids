@@ -82,34 +82,16 @@ public class SimManager : MonoBehaviour{
         if(index > numBoids || index < 0) {
             return;
         }
-
+        
         Vector2 newDims = new Vector2(boxDims.x / 2, boxDims.y / 2);
-
+        
         Vector2 tl = offset;
         Vector2 tr = new Vector2(offset.x + newDims.x, offset.y);
         Vector2 bl = new Vector2(offset.x, offset.y + newDims.y);
         Vector2 br = new Vector2(offset.x + newDims.x, offset.y + newDims.y);
-
-
-        Vector2 halfNewDim = Vector2.Scale(newDims, new Vector2(.5f,.5f));
-
-        Vector2 centerTL = tl + halfNewDim;
-        Vector2 centerTR = tr + halfNewDim;
-        Vector2 centerBL = bl + halfNewDim;
-        Vector2 centerBR = br + halfNewDim;
-
-
-        Vector3 centerTL3 = new Vector3(centerTL.x, 0, centerTL.y);
-        Vector3 centerTR3 = new Vector3(centerTR.x, 0, centerTR.y);
-        Vector3 centerBL3 = new Vector3(centerBL.x, 0, centerBL.y);
-        Vector3 centerBR3 = new Vector3(centerBR.x, 0, centerBR.y);
-        Vector3 newDims3 = new Vector3(newDims.x, 0, newDims.y);
-
-
-        Gizmos.DrawWireCube(centerTL3, newDims3);
-        Gizmos.DrawWireCube(centerTR3, newDims3);
-        Gizmos.DrawWireCube(centerBL3, newDims3);
-        Gizmos.DrawWireCube(centerBR3, newDims3);
+        Vector3 center = new Vector3(br.x,0,br.y);
+        Vector3 dims3 = new Vector3(boxDims.x, 0, boxDims.y);
+        Gizmos.DrawWireCube(center, dims3);
 
         Node currNode = nodes[index];
         // Leaf Node
