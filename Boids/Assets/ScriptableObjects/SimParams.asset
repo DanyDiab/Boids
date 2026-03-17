@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: SimParams
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
   numBoids: 1000
-  simBoundRadius: 500
+  simBoundRadius: 400
   currSearchAlgo: 2
-  cellSize: 12
-  leafCapacity: 20
+  cellSize: 10
+  leafCapacity: 5
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}
-    cellColor: {r: 0, g: 0, b: 0, a: 0.6039216}
+    cellColor: {r: 0, g: 0, b: 0, a: 1}
     headingColor: {r: 0, g: 0, b: 0, a: 1}
     neighborColor: {r: 0.36667857, g: 0.754717, b: 0.7547169, a: 0.3764706}
     showBoidHeading: 0
-    showGrid: 0
-    showNeighbors: 1
+    showGrid: 1
+    showNeighbors: 0

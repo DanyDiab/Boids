@@ -13,9 +13,12 @@ public class BoidManager : MonoBehaviour{
     float width;
     [SerializeField] BoidInfo boidInfo;
     [SerializeField] SimulationParameters simParams;
+ 
 
     public delegate void BoidSpawnEvent();
     public static event BoidSpawnEvent OnBoidSpawn;
+
+
 
 
     void Awake(){
@@ -23,6 +26,7 @@ public class BoidManager : MonoBehaviour{
         boidPool = new List<Boid>();
         spawnBoids();
         OnBoidSpawn += init;
+        ExperimentManager.OnExperimentStart += startSimulation;
     }
     void init() {
         width = simParams.SimBoundRadius;
@@ -49,13 +53,17 @@ public class BoidManager : MonoBehaviour{
         }
     }
 
+    void startSimulation() {
+        clearBoids();
+        init();
+        spawnBoids();
+    }
+
     void Update(){
         if(Keyboard.current == null) return;
 
         if (Keyboard.current.spaceKey.wasPressedThisFrame) {
-            clearBoids();
-            init();
-            spawnBoids();
+            startSimulation();
         }
     }
 

@@ -131,14 +131,5 @@ public class SimManager : MonoBehaviour{
             drawQuadTreeCells(0,new Vector2(simBoundRadius,simBoundRadius), new Vector2(-simBoundRadius / 2,-simBoundRadius / 2));
         }
     }
-//  0 -> 1 (1,2,3,4)
-//  4 -> 20 (20,21,22,23)
-//  3 -> 5
-
-
-// start at root
-//  if Branch
-//      Draw 4 quadrents
-//      Recurse to 4 children
 
 }
