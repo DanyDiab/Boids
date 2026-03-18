@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 enum ExperimentState {
     WAITING,
@@ -16,9 +17,12 @@ public class ExperimentManager : MonoBehaviour
     [Header("References")]
     [SerializeField] SimulationParameters simParams;
     [SerializeField] BoidInfo boidInfo;
-    [Header("Start Experiments?")]
-    [Space(10)]
+    [Header("Experiments Controls")]
+    [Space(20)]
     [SerializeField] bool startExperiments;
+    [Space(20)]
+    [SerializeField] bool endExperiments;
+
 
     float interactionRadius;
     
@@ -39,6 +43,12 @@ public class ExperimentManager : MonoBehaviour
             currState = ExperimentState.RUNNING;
             StartCoroutine(runExperiments());
         }
+        if(currState == ExperimentState.RUNNING && endExperiments) {
+            endExperiments= false;
+            currState = ExperimentState.WAITING;
+            StopAllCoroutines();
+        }
+        
     }
 
 
