@@ -33,6 +33,7 @@ public class SimManager : MonoBehaviour{
         init();
         BoidManager.OnBoidSpawn += init;
         statsBuilder =  new StringBuilder();
+        ExperimentManager.OnExperimentStart += clearRunningTotals;
     }
 
     void init() {
@@ -53,7 +54,7 @@ void initalizeText() {
     
     int numBoids = simParams.NumBoids;
     
-    statsBuilder.AppendLine("Simulation Stats");
+    statsBuilder.AppendLine("<b>Simulation Stats</b>");
     statsBuilder.Append("Num Boids: ").AppendLine(numBoids.ToString());
     statsBuilder.Append("Density: ").AppendLine(density.ToString());
     statsBuilder.Append("Total Checks: ").AppendLine(totalChecksText.ToString());
@@ -63,6 +64,12 @@ void initalizeText() {
     
     TMPtext.SetText(statsBuilder);
 }
+    public static void clearRunningTotals() {
+        totalChecksRunningTotal = 0;
+        totalNeighbors = 0;
+        totalMs = 0;
+        numCounted = 0;
+    }
 
 
     public static void updateRunningTotals(int numNeighbors, int numChecks, float msTaken) {
@@ -77,10 +84,7 @@ void initalizeText() {
             totalChecksText = totalChecksRunningTotal;
             averageNumChecks = (float) totalChecksRunningTotal / numBoids;
 
-            totalChecksRunningTotal = 0;
-            totalNeighbors = 0;
-            totalMs = 0;
-            numCounted = 0;
+            clearRunningTotals();
         }
     }
 
