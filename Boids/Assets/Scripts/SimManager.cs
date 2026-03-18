@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using System.Collections.Generic;
 using QuadTree;
 using UnityEngine.Experimental.AI;
+using System.Text;
 
 public class SimManager : MonoBehaviour{
     [SerializeField] SimulationParameters simParams;
@@ -27,10 +28,11 @@ public class SimManager : MonoBehaviour{
     // quadTree Nodes
     List<Node> nodes;
     static float totalMSText;
-
+    StringBuilder statsBuilder ;
     void Start() {
         init();
         BoidManager.OnBoidSpawn += init;
+        statsBuilder =  new StringBuilder();
     }
 
     void init() {
@@ -46,17 +48,21 @@ public class SimManager : MonoBehaviour{
     }
 
 
-    void initalizeText(){
-        int numBoids = simParams.NumBoids;
-        string text = "Simulation Stats\n";
-        text += "Num Boids: " + numBoids + "\n";
-        text += "Density: " + density + "\n";
-        text += "Total Checks: " + totalChecksText + "\n";
-        text += "Average Checks Per Boid: " + averageNumChecks + "\n";
-        text += "AVG MS: " + msAvg + "\n";
-        text += "Total MS: " + totalMSText + "\n";
-        TMPtext.text = text;
-    }
+void initalizeText() {
+    statsBuilder.Clear();
+    
+    int numBoids = simParams.NumBoids;
+    
+    statsBuilder.AppendLine("Simulation Stats");
+    statsBuilder.Append("Num Boids: ").AppendLine(numBoids.ToString());
+    statsBuilder.Append("Density: ").AppendLine(density.ToString());
+    statsBuilder.Append("Total Checks: ").AppendLine(totalChecksText.ToString());
+    statsBuilder.Append("Average Checks Per Boid: ").AppendLine(averageNumChecks.ToString());
+    statsBuilder.Append("AVG MS: ").AppendLine(msAvg.ToString());
+    statsBuilder.Append("Total MS: ").AppendLine(totalMSText.ToString());
+    
+    TMPtext.SetText(statsBuilder);
+}
 
 
     public static void updateRunningTotals(int numNeighbors, int numChecks, float msTaken) {
