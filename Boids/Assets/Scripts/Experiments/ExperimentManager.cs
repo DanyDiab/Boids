@@ -3,14 +3,19 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 enum ExperimentState {
-    WAITING,
-    RUNNING
+    IDLE,
+    WARMUP,
+    RECORD,
+    COMPLETE
 }
+
 
 public class ExperimentManager : MonoBehaviour
 {
     [Header("Experiment Parameters")]
-    [SerializeField] float secondsPerExperiment;
+    [SerializeField] float recordingSeconds;
+    [SerializeField] float warmupSeconds;
+    float totalExperimentTime;
     [SerializeField] int[] mapSizes;
     [SerializeField] float[] cellSizesScalars;
     [SerializeField] float[] leafCapacitiesScalars;
@@ -24,6 +29,12 @@ public class ExperimentManager : MonoBehaviour
     [SerializeField] bool endExperiments;
 
 
+    float averageDensity;
+    float averageTotalMS;
+    float averageChecks;
+    float averageChecksPerBoid;
+
+
     float interactionRadius;
     
     ExperimentState currState;
@@ -31,21 +42,21 @@ public class ExperimentManager : MonoBehaviour
     public delegate void ExperimentStart();
     public static event ExperimentStart OnExperimentStart;
     void Start(){
-        currState = ExperimentState.WAITING;
-
-
+        currState = ExperimentState.IDLE;
+        totalExperimentTime = warmupSeconds + warmupSeconds;
         interactionRadius = Mathf.Max(boidInfo.CohesionRadius,boidInfo.AlignmentRadius, boidInfo.SeparationRadius);
+        SimManager.OnSimStatsReady += recordData;
     }
 
     void Update() {
-        if(currState == ExperimentState.WAITING && startExperiments) {
+        if(currState == ExperimentState.IDLE && startExperiments) {
             startExperiments = false;
-            currState = ExperimentState.RUNNING;
+            currState = ExperimentState.WARMUP;
             StartCoroutine(runExperiments());
         }
-        if(currState == ExperimentState.RUNNING && endExperiments) {
+        if(currState != ExperimentState.IDLE && endExperiments) {
             endExperiments= false;
-            currState = ExperimentState.WAITING;
+            currState = ExperimentState.IDLE;
             StopAllCoroutines();
         }
         
@@ -68,7 +79,17 @@ public class ExperimentManager : MonoBehaviour
                 break;       
             }
         }
+        
         OnExperimentStart?.Invoke();
+    }
+
+
+    void recordData(float density, float totalMS, float totalChecks, float avgChecks) {
+        if(currState != ExperimentState.RECORD) return;
+        averageDensity += density;
+        averageTotalMS += totalMS;
+        averageChecks += totalChecks;
+        averageChecksPerBoid += avgChecks;
     }
     
 
@@ -77,14 +98,27 @@ public class ExperimentManager : MonoBehaviour
             foreach(float cellSizesScalar in cellSizesScalars) {
                 int cellSize = (int) (interactionRadius * cellSizesScalar);
                 initExperiment(SearchAlgos.UNIFORMGRID,size,cellSize);
-                yield return new WaitForSeconds(secondsPerExperiment);
+                currState = ExperimentState.WARMUP;
+                yield return new WaitForSeconds(warmupSeconds);
+                currState = ExperimentState.RECORD;
+                yield return new WaitForSeconds(recordingSeconds);
+                // average out recorded data here
+                // then write to csv
+
             }
 
             foreach(float leafCapacitiesScalar in leafCapacitiesScalars) {
                 int leafCapacity = (int) (interactionRadius * leafCapacitiesScalar);
                 initExperiment(SearchAlgos.QUADTREE,size,leafCapacity);
-                yield return new WaitForSeconds(secondsPerExperiment);
+                currState = ExperimentState.WARMUP;
+                yield return new WaitForSeconds(warmupSeconds);
+                currState = ExperimentState.RECORD;
+                yield return new WaitForSeconds(recordingSeconds);
+                // average out recorded data here
+                // then write to csv
+
             }
+
         }
     }
 }

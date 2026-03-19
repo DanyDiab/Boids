@@ -28,6 +28,9 @@ public class SimManager : MonoBehaviour{
     // quadTree Nodes
     List<Node> nodes;
     static float totalMSText;
+
+    public delegate void SimStatsReady(float density, float totalMS, float totalChecks, float avgChecks);
+    public static event SimStatsReady OnSimStatsReady;
     StringBuilder statsBuilder ;
     void Start() {
         init();
@@ -83,7 +86,7 @@ void initalizeText() {
             density = (float) totalNeighbors / numBoids;
             totalChecksText = totalChecksRunningTotal;
             averageNumChecks = (float) totalChecksRunningTotal / numBoids;
-
+            OnSimStatsReady?.Invoke(density,totalMs,totalChecksText,averageNumChecks);
             clearRunningTotals();
         }
     }

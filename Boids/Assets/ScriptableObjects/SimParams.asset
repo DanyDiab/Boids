@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: SimParams
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
   numBoids: 1000
-  simBoundRadius: 400
+  simBoundRadius: 500
   currSearchAlgo: 2
-  cellSize: 10
+  cellSize: 240
   leafCapacity: 5
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}

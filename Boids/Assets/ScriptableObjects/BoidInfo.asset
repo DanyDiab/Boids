@@ -15,7 +15,7 @@ MonoBehaviour:
   speed: 15
   separationRadius: 4
   alignmentRadius: 6
-  cohesionRadius: 20
+  cohesionRadius: 15
   separationForceWeight: 5
   alignmentForceWeight: 3
   cohesionForceWeight: 1
