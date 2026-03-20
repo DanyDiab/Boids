@@ -65,6 +65,8 @@ public class ExperimentManager : MonoBehaviour
         if(currState == ExperimentState.IDLE && startExperiments) {
             startExperiments = false;
             currState = ExperimentState.WARMUP;
+            // clear file
+            File.WriteAllText(filePath, string.Empty);
             StartCoroutine(runExperiments());
         }
         if(currState != ExperimentState.IDLE && endExperiments) {
@@ -107,42 +109,44 @@ public class ExperimentManager : MonoBehaviour
     }
 
 
-    void addNewRecord() {
+    void addNewRecord(SearchAlgos currSearchAlgo, int mapSize, int leafCapacityOrCellSize) {
         averageDensity /= recordCount;
         averageTotalMS /=  recordCount;
         averageChecks /= recordCount;
         averageChecksPerBoid /= recordCount;
 
-        ExperimentRecord experimentRecord = new ExperimentRecord(averageDensity,averageTotalMS,averageChecks,averageChecksPerBoid);
+        ExperimentRecord experimentRecord = new ExperimentRecord(averageDensity,averageTotalMS,averageChecks,averageChecksPerBoid, currSearchAlgo, mapSize, leafCapacityOrCellSize);
         experimentRecords.Add(experimentRecord);
         SaveExperiment(experimentRecord,filePath);
+        recordCount = 0;
     }
 
 
-public void SaveExperiment(ExperimentRecord record, string filePath) {
-    bool fileExists = File.Exists(filePath);
-
-    using (StreamWriter writer = new StreamWriter(filePath, true)) {
+    public void SaveExperiment(ExperimentRecord record, string filePath) {
+        bool isFirstWrite = !File.Exists(filePath) || new FileInfo(filePath).Length == 0;
         
-        CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture) {
-            HasHeaderRecord = !fileExists 
-        };
+        using (StreamWriter writer = new StreamWriter(filePath, true)) {
+            
+            CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture) {
+                HasHeaderRecord = isFirstWrite
+            };
 
-        using (CsvWriter csv = new CsvWriter(writer, config)) {
-            if (!fileExists) {
-                csv.WriteHeader<ExperimentRecord>();
+            using (CsvWriter csv = new CsvWriter(writer, config)) {
+                if (isFirstWrite) {
+                    csv.WriteHeader<ExperimentRecord>();
+                    csv.NextRecord();
+                }
+
+                csv.WriteRecord(record);
                 csv.NextRecord();
             }
-
-            csv.WriteRecord(record);
-            csv.NextRecord();
         }
     }
-}
     
 
     IEnumerator runExperiments() {
         foreach(int size in mapSizes) {
+            // Uniform grid
             foreach(float cellSizesScalar in cellSizesScalars) {
                 int cellSize = (int) (interactionRadius * cellSizesScalar);
                 initExperiment(SearchAlgos.UNIFORMGRID,size,cellSize);
@@ -150,11 +154,11 @@ public void SaveExperiment(ExperimentRecord record, string filePath) {
                 yield return new WaitForSeconds(warmupSeconds);
                 currState = ExperimentState.RECORD;
                 yield return new WaitForSeconds(recordingSeconds);
-                addNewRecord();
+                addNewRecord(SearchAlgos.UNIFORMGRID,size,cellSize);
                 
 
             }
-
+            // QuadTree
             foreach(float leafCapacitiesScalar in leafCapacitiesScalars) {
                 int leafCapacity = (int) (interactionRadius * leafCapacitiesScalar);
                 initExperiment(SearchAlgos.QUADTREE,size,leafCapacity);
@@ -162,7 +166,7 @@ public void SaveExperiment(ExperimentRecord record, string filePath) {
                 yield return new WaitForSeconds(warmupSeconds);
                 currState = ExperimentState.RECORD;
                 yield return new WaitForSeconds(recordingSeconds);
-                addNewRecord();
+                addNewRecord(SearchAlgos.QUADTREE,size,leafCapacity);
             }
 
         }

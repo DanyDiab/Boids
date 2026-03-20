@@ -29,6 +29,8 @@ public class SimManager : MonoBehaviour{
     List<Node> nodes;
     static float totalMSText;
 
+    [SerializeField] bool showSimStats;
+
     public delegate void SimStatsReady(float density, float totalMS, float totalChecks, float avgChecks);
     public static event SimStatsReady OnSimStatsReady;
     StringBuilder statsBuilder ;
@@ -48,6 +50,7 @@ public class SimManager : MonoBehaviour{
     }
 
     void Update() {
+        if(!showSimStats) return;
         initalizeText();
     }
 
