@@ -1,6 +1,12 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering;
+using CsvHelper;
+using System.Collections.Generic;
+using UnityEditor;
+using System.Globalization;
+using System.IO;
+using CsvHelper.Configuration;
 
 enum ExperimentState {
     IDLE,
@@ -33,15 +39,22 @@ public class ExperimentManager : MonoBehaviour
     float averageTotalMS;
     float averageChecks;
     float averageChecksPerBoid;
+    
+    string filePath;
 
-
+    List<ExperimentRecord> experimentRecords;
     float interactionRadius;
     
     ExperimentState currState;
 
     public delegate void ExperimentStart();
     public static event ExperimentStart OnExperimentStart;
+
+    int recordCount;
     void Start(){
+        experimentRecords = new List<ExperimentRecord>();
+        filePath = "./ExperimentResults.csv";
+        recordCount = 0;
         currState = ExperimentState.IDLE;
         totalExperimentTime = warmupSeconds + warmupSeconds;
         interactionRadius = Mathf.Max(boidInfo.CohesionRadius,boidInfo.AlignmentRadius, boidInfo.SeparationRadius);
@@ -86,11 +99,46 @@ public class ExperimentManager : MonoBehaviour
 
     void recordData(float density, float totalMS, float totalChecks, float avgChecks) {
         if(currState != ExperimentState.RECORD) return;
+        recordCount++;
         averageDensity += density;
         averageTotalMS += totalMS;
         averageChecks += totalChecks;
         averageChecksPerBoid += avgChecks;
     }
+
+
+    void addNewRecord() {
+        averageDensity /= recordCount;
+        averageTotalMS /=  recordCount;
+        averageChecks /= recordCount;
+        averageChecksPerBoid /= recordCount;
+
+        ExperimentRecord experimentRecord = new ExperimentRecord(averageDensity,averageTotalMS,averageChecks,averageChecksPerBoid);
+        experimentRecords.Add(experimentRecord);
+        SaveExperiment(experimentRecord,filePath);
+    }
+
+
+public void SaveExperiment(ExperimentRecord record, string filePath) {
+    bool fileExists = File.Exists(filePath);
+
+    using (StreamWriter writer = new StreamWriter(filePath, true)) {
+        
+        CsvConfiguration config = new CsvConfiguration(CultureInfo.InvariantCulture) {
+            HasHeaderRecord = !fileExists 
+        };
+
+        using (CsvWriter csv = new CsvWriter(writer, config)) {
+            if (!fileExists) {
+                csv.WriteHeader<ExperimentRecord>();
+                csv.NextRecord();
+            }
+
+            csv.WriteRecord(record);
+            csv.NextRecord();
+        }
+    }
+}
     
 
     IEnumerator runExperiments() {
@@ -102,8 +150,8 @@ public class ExperimentManager : MonoBehaviour
                 yield return new WaitForSeconds(warmupSeconds);
                 currState = ExperimentState.RECORD;
                 yield return new WaitForSeconds(recordingSeconds);
-                // average out recorded data here
-                // then write to csv
+                addNewRecord();
+                
 
             }
 
@@ -114,11 +162,10 @@ public class ExperimentManager : MonoBehaviour
                 yield return new WaitForSeconds(warmupSeconds);
                 currState = ExperimentState.RECORD;
                 yield return new WaitForSeconds(recordingSeconds);
-                // average out recorded data here
-                // then write to csv
-
+                addNewRecord();
             }
 
         }
+
     }
 }
