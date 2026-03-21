@@ -24,7 +24,7 @@ public class ExperimentManager : MonoBehaviour
     float totalExperimentTime;
     [SerializeField] int[] mapSizes;
     [SerializeField] float[] cellSizesScalars;
-    [SerializeField] float[] leafCapacitiesScalars;
+    [SerializeField] int[] leafCapacities;
     [Header("References")]
     [SerializeField] SimulationParameters simParams;
     [SerializeField] BoidInfo boidInfo;
@@ -44,21 +44,28 @@ public class ExperimentManager : MonoBehaviour
 
     List<ExperimentRecord> experimentRecords;
     float interactionRadius;
-    
+    ExperimentSettings experimentSettings;
     ExperimentState currState;
 
     public delegate void ExperimentStart();
     public static event ExperimentStart OnExperimentStart;
+    string fileDir;
 
     int recordCount;
     void Start(){
         experimentRecords = new List<ExperimentRecord>();
-        filePath = "./ExperimentResults.csv";
+        fileDir = Application.dataPath + "/Scripts/Results";
+        filePath = $"{fileDir}/ExperimentResults.csv";
+        Directory.CreateDirectory(fileDir);
         recordCount = 0;
         currState = ExperimentState.IDLE;
         totalExperimentTime = warmupSeconds + warmupSeconds;
         interactionRadius = Mathf.Max(boidInfo.CohesionRadius,boidInfo.AlignmentRadius, boidInfo.SeparationRadius);
+        int seed = Random.Range(int.MinValue,int.MaxValue);
+        Random.InitState(seed);
+        experimentSettings = new ExperimentSettings(simParams.NumBoids,seed,boidInfo);
         SimManager.OnSimStatsReady += recordData;
+
     }
 
     void Update() {
@@ -119,10 +126,19 @@ public class ExperimentManager : MonoBehaviour
         experimentRecords.Add(experimentRecord);
         SaveExperiment(experimentRecord,filePath);
         recordCount = 0;
+        averageDensity = 0;
+        averageTotalMS = 0;
+        averageChecks = 0;
+        averageChecksPerBoid = 0;
+    }
+
+    void SaveSettings(ExperimentSettings settings, string filePath) {
+        string jsonData = JsonUtility.ToJson(settings,true);
+        File.WriteAllText(filePath,jsonData);
     }
 
 
-    public void SaveExperiment(ExperimentRecord record, string filePath) {
+    void SaveExperiment(ExperimentRecord record, string filePath) {
         bool isFirstWrite = !File.Exists(filePath) || new FileInfo(filePath).Length == 0;
         
         using (StreamWriter writer = new StreamWriter(filePath, true)) {
@@ -135,6 +151,7 @@ public class ExperimentManager : MonoBehaviour
                 if (isFirstWrite) {
                     csv.WriteHeader<ExperimentRecord>();
                     csv.NextRecord();
+                    SaveSettings(experimentSettings,$"{fileDir}/ExperimentSettings.JSON");
                 }
 
                 csv.WriteRecord(record);
@@ -159,8 +176,7 @@ public class ExperimentManager : MonoBehaviour
 
             }
             // QuadTree
-            foreach(float leafCapacitiesScalar in leafCapacitiesScalars) {
-                int leafCapacity = (int) (interactionRadius * leafCapacitiesScalar);
+            foreach(int leafCapacity in leafCapacities) {
                 initExperiment(SearchAlgos.QUADTREE,size,leafCapacity);
                 currState = ExperimentState.WARMUP;
                 yield return new WaitForSeconds(warmupSeconds);

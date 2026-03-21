@@ -1,0 +1,3 @@
+averageDensity,averageTotalMS,averageChecks,averageChecksPerBoid,mapSize,leafCapacityOrCellSize,searchAlgo
+12.7152119,1.70517218,14107.7129,14.1077147,50,2,UNIFORMGRID
+23.9259167,4.591898,72332.76,72.332756,50,5,UNIFORMGRID

@@ -569,6 +569,7 @@ MonoBehaviour:
   simParams: {fileID: 11400000, guid: abc7d79c43c2a1f4bb436b20d1de1741, type: 2}
   simBounds: {fileID: 1376469489}
   TMPtext: {fileID: 1004474631}
+  showSimStats: 0
 --- !u!4 &570677963
 Transform:
   m_ObjectHideFlags: 0
@@ -977,7 +978,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc0b2f9a0bdea7b4f8bd9eb0ea018489, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExperimentManager
-  secondsPerExperiment: 1
+  recordingSeconds: 8
+  warmupSeconds: 2
   mapSizes: 320000006400000096000000c8000000fa0000002c0100005e01000090010000c2010000f401000026020000580200008a020000bc020000ee020000200300005203000084030000b6030000e8030000
   cellSizesScalars:
   - 0.5
@@ -999,6 +1001,7 @@ MonoBehaviour:
   simParams: {fileID: 11400000, guid: abc7d79c43c2a1f4bb436b20d1de1741, type: 2}
   boidInfo: {fileID: 11400000, guid: 154346b5e865a25428c01c53d2966e8c, type: 2}
   startExperiments: 0
+  endExperiments: 0
 --- !u!4 &1496585428
 Transform:
   m_ObjectHideFlags: 0
