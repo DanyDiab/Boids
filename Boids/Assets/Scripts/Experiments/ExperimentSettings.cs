@@ -4,6 +4,7 @@ public class ExperimentSettings {
     public int NumBoids;
     public int RandomSeed;
     public float speed;
+    public float turnSpeed;
     public float separationRadius;
     public float alignmentRadius;
     public float cohesionRadius;
@@ -11,6 +12,7 @@ public class ExperimentSettings {
     public float alignmentForceWeight;
     public float cohesionForceWeight;
     public float centerForceWeight;
+
     public ExperimentSettings(int numBoids, int randomSeed, BoidInfo boidInfo)
     {
         NumBoids = numBoids;
@@ -23,5 +25,6 @@ public class ExperimentSettings {
         this.alignmentForceWeight = boidInfo.AlignmentForceWeight;
         this.cohesionForceWeight = boidInfo.CohesionForceWeight;
         this.centerForceWeight = boidInfo.CenterForceWeight;
+        this.turnSpeed = boidInfo.TurnSpeed;
     }
 }
