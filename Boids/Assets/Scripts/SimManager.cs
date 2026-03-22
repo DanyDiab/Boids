@@ -13,6 +13,10 @@ public class SimManager : MonoBehaviour{
 
     float simBoundRadius;
     GizmoStruct gizmoStruct;
+    [SerializeField] Transform seperationLine;
+    [SerializeField] Transform cohesionLine;
+    [SerializeField] Transform alignmnetLine;
+
     [Header("Text Element")]
     [SerializeField] TMP_Text TMPtext;
 
@@ -33,7 +37,7 @@ public class SimManager : MonoBehaviour{
 
     public delegate void SimStatsReady(float density, float totalMS, float totalChecks, float avgChecks);
     public static event SimStatsReady OnSimStatsReady;
-    StringBuilder statsBuilder ;
+    StringBuilder statsBuilder;
     void Start() {
         init();
         BoidManager.OnBoidSpawn += init;
@@ -145,6 +149,24 @@ void initalizeText() {
                 return;
             }
             drawQuadTreeCells(0,new Vector2(simBoundRadius,simBoundRadius), new Vector2(-simBoundRadius / 2,-simBoundRadius / 2));
+        }
+    }
+
+    public void UpdateForceVisuals(Vector3 separationForce, Vector3 cohesionForce, Vector3 alignmentForce) {
+        UpdateLine(seperationLine, separationForce);
+        UpdateLine(cohesionLine, cohesionForce);
+        UpdateLine(alignmnetLine, alignmentForce);
+    }
+
+    private void UpdateLine(Transform lineTransform, Vector3 force) {
+        if (force.sqrMagnitude > 0.0001f) {
+            lineTransform.gameObject.SetActive(true);
+            
+            lineTransform.rotation = Quaternion.LookRotation(force);
+            
+            lineTransform.localScale = new Vector3(1, 1, force.magnitude);
+        } else {
+            lineTransform.gameObject.SetActive(false);
         }
     }
 

@@ -4,6 +4,7 @@ using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 public class Boid : MonoBehaviour{
     float speed;
+    float turnSpeed;
     float seperationRadius;
     float alignmentRadius;
     float cohesionRadius;
@@ -28,6 +29,7 @@ public class Boid : MonoBehaviour{
 
     private void grabValuesFromSO() {
         speed = boidInfo.Speed;
+        turnSpeed = boidInfo.TurnSpeed;
         seperationRadius = boidInfo.SeparationRadius;
         alignmentRadius = boidInfo.AlignmentRadius;
         cohesionRadius = boidInfo.CohesionRadius;
@@ -74,12 +76,12 @@ public class Boid : MonoBehaviour{
         (numNeighbors, numChecks, neighbors) = search.FindNeighbors(myIndex,maxRadius);
         stopwatch.Stop();
         float totalTime = (float)stopwatch.Elapsed.TotalMilliseconds;
-
+        Vector3 desiredHeading = currHeading;
         if(numNeighbors > 0) {
-            currHeading = calculateForces(numNeighbors,neighbors);
+            desiredHeading = calculateForces(numNeighbors,neighbors);
         }
-        currHeading += getCenterForceScaled();
-
+        desiredHeading += getCenterForceScaled();
+        currHeading = Vector3.Lerp(currHeading, desiredHeading.normalized, Time.deltaTime * turnSpeed).normalized;
         transform.Translate(currHeading * speed * Time.deltaTime);
         if (gizmoStruct.showBoidHeading) {
             Debug.DrawLine(boid.transform.position,boid.transform.position + (currHeading * 5),gizmoStruct.headingColor);

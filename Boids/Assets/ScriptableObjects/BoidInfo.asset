@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49f916cde652acd4080ba03bdcf25777, type: 3}
   m_Name: BoidInfo
   m_EditorClassIdentifier: Assembly-CSharp::BoidInfo
-  speed: 10
+  speed: 5
   separationRadius: 3
   alignmentRadius: 4
   cohesionRadius: 5

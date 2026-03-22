@@ -6,6 +6,7 @@ public class BoidInfo : ScriptableObject{
 
     [Header("Speed")]
     [SerializeField] float speed;
+    [SerializeField] float turnSpeed;
 
     [Header("Radii")]
     [SerializeField] float separationRadius;
@@ -19,6 +20,7 @@ public class BoidInfo : ScriptableObject{
     [SerializeField] float centerForceWeight;
 
     public float Speed { get => speed; set => speed = value; }
+    public float TurnSpeed { get => turnSpeed; set => turnSpeed = value; }
     public float SeparationRadius { get => separationRadius; set => separationRadius = value; }
     public float AlignmentRadius { get => alignmentRadius; set => alignmentRadius = value; }
     public float CohesionRadius { get => cohesionRadius; set => cohesionRadius = value; }
