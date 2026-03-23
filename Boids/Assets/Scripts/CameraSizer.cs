@@ -11,6 +11,10 @@ public class CameraSizer : MonoBehaviour {
        BoidManager.OnBoidSpawn += updateCamSize;
     }
 
+    void OnDestroy() {
+        BoidManager.OnBoidSpawn -= updateCamSize;
+    }
+
     public void updateCamSize() {
         float radius = simParams.SimBoundRadius;
         float size = (radius / 2) + 20;

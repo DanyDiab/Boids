@@ -44,6 +44,9 @@ public class SimManager : MonoBehaviour{
         statsBuilder =  new StringBuilder();
         ExperimentManager.OnExperimentStart += clearRunningTotals;
     }
+    void OnDestroy() {
+        BoidManager.OnBoidSpawn -= init;
+    }
 
     void init() {
         simBoundRadius = simParams.SimBoundRadius;
