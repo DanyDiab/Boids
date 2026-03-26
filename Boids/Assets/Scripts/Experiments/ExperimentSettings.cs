@@ -1,7 +1,7 @@
 [System.Serializable]
 public class ExperimentSettings {
 
-    public int NumBoids;
+    public int MapSize;
     public int RandomSeed;
     public float speed;
     public float turnSpeed;
@@ -13,9 +13,9 @@ public class ExperimentSettings {
     public float cohesionForceWeight;
     public float centerForceWeight;
 
-    public ExperimentSettings(int numBoids, int randomSeed, BoidInfo boidInfo)
+    public ExperimentSettings(int mapSize, int randomSeed, BoidInfo boidInfo)
     {
-        NumBoids = numBoids;
+        MapSize = mapSize;
         RandomSeed = randomSeed;
         this.speed = boidInfo.Speed;
         this.separationRadius = boidInfo.SeparationRadius;

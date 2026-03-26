@@ -22,9 +22,11 @@ public class ExperimentManager : MonoBehaviour
     [SerializeField] float recordingSeconds;
     [SerializeField] float warmupSeconds;
     float totalExperimentTime;
-    [SerializeField] int[] mapSizes;
+    [SerializeField] int[] entityCounts;
     [SerializeField] float[] cellSizesScalars;
     [SerializeField] int[] leafCapacities;
+
+    [SerializeField] float mapSize = 500;
     [Header("References")]
     [SerializeField] SimulationParameters simParams;
     [SerializeField] BoidInfo boidInfo;
@@ -59,7 +61,7 @@ public class ExperimentManager : MonoBehaviour
         Directory.CreateDirectory(fileDir);
         recordCount = 0;
         currState = ExperimentState.IDLE;
-        totalExperimentTime = warmupSeconds + warmupSeconds;
+        totalExperimentTime = warmupSeconds + recordingSeconds;
         interactionRadius = Mathf.Max(boidInfo.CohesionRadius,boidInfo.AlignmentRadius, boidInfo.SeparationRadius);
         int seed = Random.Range(int.MinValue,int.MaxValue);
         Random.InitState(seed);
@@ -69,11 +71,15 @@ public class ExperimentManager : MonoBehaviour
     }
 
     void Update() {
+        if(currState == ExperimentState.RECORD) {
+            return;
+        }
         if(currState == ExperimentState.IDLE && startExperiments) {
             startExperiments = false;
             currState = ExperimentState.WARMUP;
             // clear file
             File.WriteAllText(filePath, string.Empty);
+            simParams.SimBoundRadius = mapSize;
             StartCoroutine(runExperiments());
         }
         if(currState != ExperimentState.IDLE && endExperiments) {
@@ -85,9 +91,9 @@ public class ExperimentManager : MonoBehaviour
     }
 
 
-    void initExperiment(SearchAlgos algoToUse, int mapSize, int leafCapacityOrCellSize) {
+    void initExperiment(SearchAlgos algoToUse, int numBoids, int leafCapacityOrCellSize) {
         simParams.CurrSearchAlgo = algoToUse;
-        simParams.SimBoundRadius = mapSize;
+        simParams.NumBoids = numBoids;
         switch (algoToUse) {
             case (SearchAlgos.UNIFORMGRID): {
                 simParams.CellSize = leafCapacityOrCellSize;
@@ -116,13 +122,13 @@ public class ExperimentManager : MonoBehaviour
     }
 
 
-    void addNewRecord(SearchAlgos currSearchAlgo, int mapSize, int leafCapacityOrCellSize) {
+    void addNewRecord(SearchAlgos currSearchAlgo, int numBoids, int leafCapacityOrCellSize) {
         averageDensity /= recordCount;
         averageTotalMS /=  recordCount;
         averageChecks /= recordCount;
         averageChecksPerBoid /= recordCount;
 
-        ExperimentRecord experimentRecord = new ExperimentRecord(averageDensity,averageTotalMS,averageChecks,averageChecksPerBoid, currSearchAlgo, mapSize, leafCapacityOrCellSize);
+        ExperimentRecord experimentRecord = new ExperimentRecord(averageDensity,averageTotalMS,averageChecks,averageChecksPerBoid, currSearchAlgo, numBoids, leafCapacityOrCellSize);
         experimentRecords.Add(experimentRecord);
         SaveExperiment(experimentRecord,filePath);
         recordCount = 0;
@@ -162,28 +168,36 @@ public class ExperimentManager : MonoBehaviour
     
 
     IEnumerator runExperiments() {
-        foreach(int size in mapSizes) {
+        foreach(int numBoids in entityCounts) {
             // Uniform grid
             foreach(float cellSizesScalar in cellSizesScalars) {
                 int cellSize = (int) (interactionRadius * cellSizesScalar);
-                initExperiment(SearchAlgos.UNIFORMGRID,size,cellSize);
+                initExperiment(SearchAlgos.UNIFORMGRID,numBoids,cellSize);
                 currState = ExperimentState.WARMUP;
                 yield return new WaitForSeconds(warmupSeconds);
                 currState = ExperimentState.RECORD;
                 yield return new WaitForSeconds(recordingSeconds);
-                addNewRecord(SearchAlgos.UNIFORMGRID,size,cellSize);
+                addNewRecord(SearchAlgos.UNIFORMGRID,numBoids,cellSize);
                 
 
             }
             // QuadTree
             foreach(int leafCapacity in leafCapacities) {
-                initExperiment(SearchAlgos.QUADTREE,size,leafCapacity);
+                initExperiment(SearchAlgos.QUADTREE,numBoids,leafCapacity);
                 currState = ExperimentState.WARMUP;
                 yield return new WaitForSeconds(warmupSeconds);
                 currState = ExperimentState.RECORD;
                 yield return new WaitForSeconds(recordingSeconds);
-                addNewRecord(SearchAlgos.QUADTREE,size,leafCapacity);
+                addNewRecord(SearchAlgos.QUADTREE,numBoids,leafCapacity);
             }
+
+            initExperiment(SearchAlgos.BF,numBoids,0);
+            currState = ExperimentState.WARMUP;
+            yield return new WaitForSeconds(warmupSeconds);
+            currState = ExperimentState.RECORD;
+            yield return new WaitForSeconds(recordingSeconds);
+            addNewRecord(SearchAlgos.BF,numBoids,0);
+
 
         }
 
