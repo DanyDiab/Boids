@@ -31,7 +31,7 @@ namespace QuadTree {
             nodes = new List<Node>();
             this.leafCapacity = leafCapacity;
             this.simBoundRadius = simBoundRadius;
-            int maxNumNodes = 4 * numBoids / leafCapacity * 2;
+            int maxNumNodes = Mathf.Max(4 * numBoids / leafCapacity * 2, 16);
             nodePool = new Node[maxNumNodes];
             poolCount = 0;
             this.simParams = simParams;
@@ -246,6 +246,10 @@ namespace QuadTree {
         void addAllNodesToPool() {
             for(int i = 0; i < nodes.Count; i++) {
                 nodes[i].BoidIDs.Clear();
+                // resize if needed
+                if(poolCount >= nodePool.Length) {
+                    Array.Resize(ref nodePool, nodePool.Length * 2 + 10);
+                }
                 nodePool[poolCount++] = nodes[i];
             }
         }
