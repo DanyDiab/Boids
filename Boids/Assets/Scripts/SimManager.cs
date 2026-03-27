@@ -112,7 +112,7 @@ void initalizeText() {
         Vector2 tr = new Vector2(offset.x + newDims.x, offset.y);
         Vector2 bl = new Vector2(offset.x, offset.y + newDims.y);
         Vector2 br = new Vector2(offset.x + newDims.x, offset.y + newDims.y);
-        Vector3 center = new Vector3(br.x,0,br.y);
+        Vector3 center = new Vector3(offset.x + (boxDims.x / 2f), 0, offset.y + (boxDims.y / 2f));
         Vector3 dims3 = new Vector3(boxDims.x, 0, boxDims.y);
         Gizmos.DrawWireCube(center, dims3);
 
@@ -133,13 +133,13 @@ void initalizeText() {
         Gizmos.color = gizmoStruct.cellColor;
         if(simParams.CurrSearchAlgo == SearchAlgos.UNIFORMGRID) {
             int cellSize = simParams.CellSize;
-            int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;
+            int numCellsRow = Mathf.Max(1, (int)Mathf.Ceil(simBoundRadius / cellSize));
             float sizePerCell = simBoundRadius / numCellsRow;
             for(int i = 0; i < numCellsRow * numCellsRow; i++) {
-                int rowNumber = i / numCellsRow;
-                int colNumber = i % numCellsRow;
-                float xPos = (-simBoundRadius / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
-                float zPos = (-simBoundRadius / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
+                int rowNumber = i / numCellsRow; // Z index
+                int colNumber = i % numCellsRow; // X index
+                float xPos = (-simBoundRadius / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
+                float zPos = (-simBoundRadius / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
                 Vector3 finalPosition = new Vector3(xPos, 0, zPos);
                 Gizmos.DrawWireCube(finalPosition, new Vector3(sizePerCell, 0, sizePerCell));
             }

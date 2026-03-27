@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
@@ -7,6 +7,11 @@ using UnityEngine.InputSystem;
 public class SlideManager : MonoBehaviour{
     static SlideManager instance;
 
+    [SerializeField]
+    List<string> scenes = new List<string>();
+
+    int currSceneIndex = 0;
+    int sceneCount;
     void Awake() {
         if (instance == null) {
             instance = this;
@@ -15,6 +20,9 @@ public class SlideManager : MonoBehaviour{
         else {
             Destroy(gameObject);
         }
+    }
+    void Start() {
+       sceneCount = scenes.Count; 
     }
 
     void Update() {
@@ -29,16 +37,15 @@ public class SlideManager : MonoBehaviour{
     }
 
     void goToNextSlide() {
-        int nextScene = SceneManager.GetActiveScene().buildIndex + 1;
-        if(nextScene > SceneManager.sceneCountInBuildSettings - 1) return;
-        SceneManager.LoadScene(nextScene);
+        if(currSceneIndex >= sceneCount - 1) return;
+        currSceneIndex++;
+        SceneManager.LoadScene(scenes[currSceneIndex]);
     }
 
     void goToPreviousSlide() {
-        int prevScene = SceneManager.GetActiveScene().buildIndex - 1;
-        if(prevScene < 0) return;
-        SceneManager.LoadScene(prevScene);
-
+        if(currSceneIndex <= 0) return;
+        currSceneIndex--;
+        SceneManager.LoadScene(scenes[currSceneIndex]);
     }
 
 }

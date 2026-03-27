@@ -14,6 +14,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ResultsScene.unity
     guid: 348a69cb7107668489e4637671d45e63
+  - enabled: 1
+    path: Assets/Scenes/OverallPerformance.unity
+    guid: eef144135e5961747ba212e9714574a9
+  - enabled: 1
+    path: Assets/Scenes/QuadTree.unity
+    guid: 5bb32393052fa1f408f128e8eff300db
+  - enabled: 1
+    path: Assets/Scenes/UniformGrid.unity
+    guid: feedc95897a8d68488e38f96dfcd3e07
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

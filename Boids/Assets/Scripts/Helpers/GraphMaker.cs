@@ -96,7 +96,7 @@ public class Graph : MonoBehaviour {
         Dictionary<(SearchAlgos, float), float> minTimes = new Dictionary<(SearchAlgos, float), float>();
         
         foreach(ExperimentRecord run in experimentRecords) {
-            (SearchAlgos, float) key = (run.searchAlgo, run.mapSize);
+            (SearchAlgos, float) key = (run.searchAlgo, run.numBoids);
             if(!minTimes.ContainsKey(key)) {
                 minTimes[key] = run.averageTotalMS;
             } else if (run.averageTotalMS < minTimes[key]) {

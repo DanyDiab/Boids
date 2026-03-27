@@ -27,6 +27,15 @@ public class SimulationParameters : ScriptableObject{
     [Header("Gizmo Options")]
     [SerializeField] GizmoStruct gizmoStruct;
 
+    [Header("Search Visualization")]
+    [SerializeField] bool isVisualizingSearch;
+    [SerializeField] int targetBoidID;
+    [Range(0.1f, 10f)]
+    [SerializeField] float searchVisLerpSpeed = 2f;
+    [SerializeField] Color highlightCellColor = Color.yellow;
+    [SerializeField] Color distanceCheckLineColor = Color.red;
+    [SerializeField] float zoomOrthographicSize = 10f;
+
     public int NumBoids { get => numBoids; set => numBoids = value; }
     public int LeafCapacity { get => leafCapacity; set => leafCapacity = value; }
 
@@ -38,4 +47,10 @@ public class SimulationParameters : ScriptableObject{
     public UniformGridSearch Search { get => search; set => search = value; }
     public GizmoStruct GizmoStruct {get => gizmoStruct; set => gizmoStruct = value; }
 
+    public bool IsVisualizingSearch { get => isVisualizingSearch; set => isVisualizingSearch = value; }
+    public int TargetBoidID { get => targetBoidID; set => targetBoidID = value; }
+    public float SearchVisLerpSpeed { get => searchVisLerpSpeed; set => searchVisLerpSpeed = value; }
+    public Color HighlightCellColor { get => highlightCellColor; set => highlightCellColor = value; }
+    public Color DistanceCheckLineColor { get => distanceCheckLineColor; set => distanceCheckLineColor = value; }
+    public float ZoomOrthographicSize { get => zoomOrthographicSize; set => zoomOrthographicSize = value; }
 }

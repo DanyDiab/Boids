@@ -6,9 +6,9 @@ using QuadTree;
 
 public class BoidManager : MonoBehaviour{
     int numBoids;
-    Boid[] boids;
+    public Boid[] boids;
     [SerializeField] GameObject boidPrefab;
-    IBoidSearch search;
+    public IBoidSearch search;
     List<Boid> boidPool;
     float width;
     [SerializeField] BoidInfo boidInfo;

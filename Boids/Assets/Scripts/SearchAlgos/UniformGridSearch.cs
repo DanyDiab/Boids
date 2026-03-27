@@ -27,7 +27,6 @@ public class UniformGridSearch : IBoidSearch {
     Boid[] boids;
     int numBoids;
 
-    int cellSize;
     int numCellsPerRow;
     int numCells;
 
@@ -35,18 +34,22 @@ public class UniformGridSearch : IBoidSearch {
     int[] cellStartOffsets;
     int[] cellSizes;
     float simBoundRadius;
+    float cellSize;
 
     int[] neighboringCellIDs = new int[9];
 
-    public UniformGridSearch(int numBoids, int cellSize, float simBoundRadius) {
+    public UniformGridSearch(int numBoids, float cellSize, float simBoundRadius) {
         this.numBoids = numBoids;
         currNeighbors = new Boid[numBoids - 1];
         boidPositions = new Vector3[numBoids];
         boids = new Boid[numBoids];
-        this.cellSize = cellSize;
-        int numCellsRow = (int) Mathf.Ceil(simBoundRadius / cellSize) + 1;
-        this.simBoundRadius = simBoundRadius + (cellSize / 2);
-        numCellsPerRow = numCellsRow;
+        
+        // numCellsRow should be at least 1, and we remove the +1 padding.
+        this.numCellsPerRow = Mathf.Max(1, (int)Mathf.Ceil(simBoundRadius / cellSize));
+        // Recalculate cellSize so it fits the bounds perfectly.
+        this.cellSize = simBoundRadius / numCellsPerRow;
+        
+        this.simBoundRadius = simBoundRadius;
         numCells = numCellsPerRow * numCellsPerRow;
         cells = new BoidCellPair[numBoids];
         cellStartOffsets = new int[numCells];
@@ -71,9 +74,17 @@ public class UniformGridSearch : IBoidSearch {
 
     // returns cellID
     int getCellID(Vector3 position) {
+        // Shift position to be in [0, simBoundRadius]
+        float shiftedX = position.x + (simBoundRadius / 2f);
+        float shiftedZ = position.z + (simBoundRadius / 2f);
 
-        int xCell = (int) (position.x + (simBoundRadius / 2))  / cellSize;
-        int zCell = (int) (position.z + (simBoundRadius / 2)) / cellSize;
+        int xCell = (int)(shiftedX / cellSize);
+        int zCell = (int)(shiftedZ / cellSize);
+
+        // Clamp to avoid edge-of-bounds floating point errors
+        xCell = Mathf.Clamp(xCell, 0, numCellsPerRow - 1);
+        zCell = Mathf.Clamp(zCell, 0, numCellsPerRow - 1);
+
         int cellID = (zCell * numCellsPerRow) + xCell;
         return cellID;
     }
@@ -91,6 +102,11 @@ public class UniformGridSearch : IBoidSearch {
     }
 
     void updateCellInfo() {
+        Array.Clear(cellSizes, 0, cellSizes.Length);
+        Array.Clear(cellStartOffsets, 0, cellStartOffsets.Length);
+
+        if (numBoids == 0) return;
+
         int cellStreakID = cells[0].CellID;
         int count = 1;
         for(int i = 1; i < numBoids; i++) {
@@ -106,23 +122,26 @@ public class UniformGridSearch : IBoidSearch {
         }
         cellSizes[cellStreakID] = count;
         cellStartOffsets[cellStreakID] = numBoids - count;
-
-
     }
 // returns {curr, top, bottom, left, right, top left, top right, bottom left, bottom right}
     void updateNeighboringCellIDs(int cellID) {
-        int t = cellID - numCellsPerRow;
-        int b = cellID + numCellsPerRow;
+        int x = cellID % numCellsPerRow;
+        int z = cellID / numCellsPerRow;
 
-        neighboringCellIDs[0] = cellID;
-        neighboringCellIDs[1] = t;
-        neighboringCellIDs[2] = b;
-        neighboringCellIDs[3] = cellID - 1;
-        neighboringCellIDs[4] = cellID + 1;
-        neighboringCellIDs[5] = t - 1;
-        neighboringCellIDs[6] = t + 1;
-        neighboringCellIDs[7] = b - 1;
-        neighboringCellIDs[8] = b + 1;
+        int idx = 0;
+        for (int i = -1; i <= 1; i++) { // z offset
+            for (int j = -1; j <= 1; j++) { // x offset
+                int targetX = x + j;
+                int targetZ = z + i;
+                
+                if (targetX >= 0 && targetX < numCellsPerRow && targetZ >= 0 && targetZ < numCellsPerRow) {
+                    neighboringCellIDs[idx] = (targetZ * numCellsPerRow) + targetX;
+                } else {
+                    neighboringCellIDs[idx] = -1;
+                }
+                idx++;
+            }
+        }
     }
 
 
@@ -131,6 +150,39 @@ public class UniformGridSearch : IBoidSearch {
         Array.Sort(cells,(x,y) => x.CellID.CompareTo(y.CellID));
         updateCellInfo();
     }
+
+    public int[] GetNeighboringCellIDs(Vector3 position) {
+        int cellID = getCellID(position);
+        updateNeighboringCellIDs(cellID);
+        // Create a copy to avoid modification issues
+        int[] result = new int[9];
+        Array.Copy(neighboringCellIDs, result, 9);
+        return result;
+    }
+
+    public List<int> GetBoidIDsInCell(int cellID) {
+        List<int> ids = new List<int>();
+        if (cellID < 0 || cellID >= numCells) return ids;
+
+        int start = cellStartOffsets[cellID];
+        int count = cellSizes[cellID];
+        for (int i = start; i < start + count; i++) {
+            ids.Add(cells[i].BoidID);
+        }
+        return ids;
+    }
+
+    public Vector3 GetCellCenter(int cellID) {
+        int xCell = cellID % numCellsPerRow;
+        int zCell = cellID / numCellsPerRow;
+        float xPos = (-simBoundRadius / 2f) + (xCell * cellSize) + (cellSize / 2f);
+        float zPos = (-simBoundRadius / 2f) + (zCell * cellSize) + (cellSize / 2f);
+        return new Vector3(xPos, 0, zPos);
+    }
+
+    public float CellSize => cellSize;
+    public int NumCellsPerRow => numCellsPerRow;
+    public float SimBoundRadius => simBoundRadius;
 
     public (int, int, Boid[]) FindNeighbors(int index, float radius) {
         if(index == 0) {
