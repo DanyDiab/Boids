@@ -7,22 +7,20 @@ using System.Linq;
 using System.Globalization;
 using System.IO;
 
-public class Graph : MonoBehaviour{
+public class Graph : MonoBehaviour {
     [Header("Charts")]
     [SerializeField] BarChart barChart;
     [SerializeField] ScatterChart scatterChart;
-    [SerializeField] LineChart gridParameterPerformanceChart;
-    [SerializeField] LineChart quadtreeParameterPerformanceChart;
-    [SerializeField] LineChart gridParameterDensityChart;
-    [SerializeField] LineChart quadtreeParameterDensityChart;
+    [SerializeField] LineChart performanceComparisonChart; 
+    [SerializeField] LineChart gridOptimalParameterChart;
+    [SerializeField] LineChart quadtreeOptimalParameterChart;
     
     [Header("Chart Toggles")]
     [SerializeField] bool showBarChart = true;
     [SerializeField] bool showScatterChart = true;
-    [SerializeField] bool showGridPerformance = true;
-    [SerializeField] bool showQuadtreePerformance = true;
-    [SerializeField] bool showGridDensity = true;
-    [SerializeField] bool showQuadtreeDensity = true;
+    [SerializeField] bool showPerformanceComparison = true;
+    [SerializeField] bool showGridOptimal = true;
+    [SerializeField] bool showQuadtreeOptimal = true;
 
     string resultsPath;
     string fileDir;
@@ -47,32 +45,25 @@ public class Graph : MonoBehaviour{
             scatterChart.gameObject.SetActive(false);
         }
 
-        if (showGridPerformance && gridParameterPerformanceChart != null) {
-            gridParameterPerformanceChart.gameObject.SetActive(true);
-            generateGridParameterPerformanceLine(gridParameterPerformanceChart, "Grid Performance", "Cell Size vs Total MS");
-        } else if (gridParameterPerformanceChart != null) {
-            gridParameterPerformanceChart.gameObject.SetActive(false);
+        if (showPerformanceComparison && performanceComparisonChart != null) {
+            performanceComparisonChart.gameObject.SetActive(true);
+            generatePerformanceComparisonLine(performanceComparisonChart, "Algorithm Performance", "Number of Boids vs Average Total MS");
+        } else if (performanceComparisonChart != null) {
+            performanceComparisonChart.gameObject.SetActive(false);
         }
 
-        if (showQuadtreePerformance && quadtreeParameterPerformanceChart != null) {
-            quadtreeParameterPerformanceChart.gameObject.SetActive(true);
-            generateQuadtreeParameterPerformanceLine(quadtreeParameterPerformanceChart, "Quadtree Performance", "Leaf Capacity vs Total MS");
-        } else if (quadtreeParameterPerformanceChart != null) {
-            quadtreeParameterPerformanceChart.gameObject.SetActive(false);
+        if (showGridOptimal && gridOptimalParameterChart != null) {
+            gridOptimalParameterChart.gameObject.SetActive(true);
+            generateGridOptimalParameterByBoidsLine(gridOptimalParameterChart, "Uniform Grid: Optimal Cell Size", "Number of Boids vs Optimal Cell Size");
+        } else if (gridOptimalParameterChart != null) {
+            gridOptimalParameterChart.gameObject.SetActive(false);
         }
 
-        if (showGridDensity && gridParameterDensityChart != null) {
-            gridParameterDensityChart.gameObject.SetActive(true);
-            generateGridOptimalParameterByDensityLine(gridParameterDensityChart, "Optimal Grid Cell Size", "Density vs Optimal Cell Size");
-        } else if (gridParameterDensityChart != null) {
-            gridParameterDensityChart.gameObject.SetActive(false);
-        }
-
-        if (showQuadtreeDensity && quadtreeParameterDensityChart != null) {
-            quadtreeParameterDensityChart.gameObject.SetActive(true);
-            generateQuadtreeOptimalParameterByDensityLine(quadtreeParameterDensityChart, "Optimal Quadtree Leaf Capacity", "Density vs Optimal Capacity");
-        } else if (quadtreeParameterDensityChart != null) {
-            quadtreeParameterDensityChart.gameObject.SetActive(false);
+        if (showQuadtreeOptimal && quadtreeOptimalParameterChart != null) {
+            quadtreeOptimalParameterChart.gameObject.SetActive(true);
+            generateQuadtreeOptimalParameterByBoidsLine(quadtreeOptimalParameterChart, "Quadtree: Optimal Leaf Capacity", "Number of Boids vs Optimal Leaf Capacity");
+        } else if (quadtreeOptimalParameterChart != null) {
+            quadtreeOptimalParameterChart.gameObject.SetActive(false);
         }
     }
 
@@ -85,7 +76,7 @@ public class Graph : MonoBehaviour{
         return records;
     }
 
-    void addTitleToChart(BaseChart chart, string title, string subTitle){
+    void addTitleToChart(BaseChart chart, string title, string subTitle) {
         Title titleComponent = chart.EnsureChartComponent<Title>();
         titleComponent.show = true;
         titleComponent.text = title;
@@ -167,18 +158,19 @@ public class Graph : MonoBehaviour{
         }
     }
 
-    void generateGridParameterPerformanceLine(LineChart chart, string title, string subTitle) {
+    void generatePerformanceComparisonLine(LineChart chart, string title, string subTitle) {
         addTitleToChart(chart, title, subTitle);
         enableLegend(chart);
 
         chart.RemoveData();
-        Serie uniformGrid = chart.AddSerie<Line>("Uniform Grid");
+        chart.AddSerie<Line>("Uniform Grid");
+        chart.AddSerie<Line>("Quadtree");
+        chart.AddSerie<Line>("Brute Force");
 
         XAxis xAxis = chart.EnsureChartComponent<XAxis>();
-        xAxis.type = Axis.AxisType.Log; 
+        xAxis.type = Axis.AxisType.Value; 
         xAxis.axisName.show = true;
-        xAxis.axisName.name = "Cell Size";
-        xAxis.data.Clear(); 
+        xAxis.axisName.name = "Number of Boids";
 
         YAxis yAxis = chart.EnsureChartComponent<YAxis>();
         yAxis.type = Axis.AxisType.Value;
@@ -187,91 +179,39 @@ public class Graph : MonoBehaviour{
 
         Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
         tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Cell Size: {c0} <br/> <br/> Total MS: {c1:f2}";
+        tooltip.itemFormatter = "{a} <br/> Boids: {c0} <br/> Time: {c1:f2} ms";
 
-        Dictionary<float, List<float>> groupedTimes = new Dictionary<float, List<float>>();
+        Dictionary<int, float> gridBest = new Dictionary<int, float>();
+        Dictionary<int, float> qtBest = new Dictionary<int, float>();
+        Dictionary<int, float> bfTimes = new Dictionary<int, float>();
 
         foreach(ExperimentRecord record in experimentRecords) {
-            if(record.searchAlgo != SearchAlgos.UNIFORMGRID) continue;
-
-            float key = record.leafCapacityOrCellSize;
-            if(!groupedTimes.ContainsKey(key)) {
-                groupedTimes[key] = new List<float>();
+            int boids = record.numBoids;
+            
+            if (record.searchAlgo == SearchAlgos.UNIFORMGRID) {
+                if (!gridBest.ContainsKey(boids) || record.averageTotalMS < gridBest[boids])
+                    gridBest[boids] = record.averageTotalMS;
+            } 
+            else if (record.searchAlgo == SearchAlgos.QUADTREE) {
+                if (!qtBest.ContainsKey(boids) || record.averageTotalMS < qtBest[boids])
+                    qtBest[boids] = record.averageTotalMS;
+            } 
+            else if (record.searchAlgo == SearchAlgos.BF) {
+                bfTimes[boids] = record.averageTotalMS;
             }
-            groupedTimes[key].Add(record.averageTotalMS);
         }
 
-        List<(float, float)> averagedData = new List<(float, float)>();
+        List<int> sortedBoids = bfTimes.Keys.ToList();
+        sortedBoids.Sort();
 
-        foreach(KeyValuePair<float, List<float>> kvp in groupedTimes) {
-            float sum = 0f;
-            foreach(float time in kvp.Value) {
-                sum += time;
-            }
-            float average = sum / kvp.Value.Count;
-            averagedData.Add((kvp.Key, average));
-        }
-
-        List<(float paramSize, float avgTime)> sortedData = averagedData.OrderBy(item => item.Item1).ToList();
-
-        foreach((float paramSize, float avgTime) in sortedData) {
-            chart.AddData(0, paramSize, avgTime); 
+        foreach(int boids in sortedBoids) {
+            chart.AddData(0, boids, gridBest.ContainsKey(boids) ? gridBest[boids] : 0); 
+            chart.AddData(1, boids, qtBest.ContainsKey(boids) ? qtBest[boids] : 0); 
+            chart.AddData(2, boids, bfTimes.ContainsKey(boids) ? bfTimes[boids] : 0); 
         }
     }
 
-    void generateQuadtreeParameterPerformanceLine(LineChart chart, string title, string subTitle) {
-        addTitleToChart(chart, title, subTitle);
-        enableLegend(chart);
-
-        chart.RemoveData();
-        Serie quadTree = chart.AddSerie<Line>("Quadtree");
-
-        XAxis xAxis = chart.EnsureChartComponent<XAxis>();
-        xAxis.type = Axis.AxisType.Log; 
-        xAxis.axisName.show = true;
-        xAxis.axisName.name = "Leaf Capacity";
-        xAxis.data.Clear(); 
-
-        YAxis yAxis = chart.EnsureChartComponent<YAxis>();
-        yAxis.type = Axis.AxisType.Value;
-        yAxis.axisName.show = true;
-        yAxis.axisName.name = "Average Total MS";
-
-        Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
-        tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Leaf Capacity: {c0} <br/> <br/> Total MS: {c1:f2}";
-
-        Dictionary<float, List<float>> groupedTimes = new Dictionary<float, List<float>>();
-
-        foreach(ExperimentRecord record in experimentRecords) {
-            if(record.searchAlgo != SearchAlgos.QUADTREE) continue;
-
-            float key = record.leafCapacityOrCellSize;
-            if(!groupedTimes.ContainsKey(key)) {
-                groupedTimes[key] = new List<float>();
-            }
-            groupedTimes[key].Add(record.averageTotalMS);
-        }
-
-        List<(float, float)> averagedData = new List<(float, float)>();
-
-        foreach(KeyValuePair<float, List<float>> kvp in groupedTimes) {
-            float sum = 0f;
-            foreach(float time in kvp.Value) {
-                sum += time;
-            }
-            float average = sum / kvp.Value.Count;
-            averagedData.Add((kvp.Key, average));
-        }
-
-        List<(float paramSize, float avgTime)> sortedData = averagedData.OrderBy(item => item.Item1).ToList();
-
-        foreach((float paramSize, float avgTime) in sortedData) {
-            chart.AddData(0, paramSize, avgTime); 
-        }
-    }
-
-    void generateGridOptimalParameterByDensityLine(LineChart chart, string title, string subTitle) {
+    void generateGridOptimalParameterByBoidsLine(LineChart chart, string title, string subTitle) {
         addTitleToChart(chart, title, subTitle);
         enableLegend(chart);
 
@@ -281,7 +221,7 @@ public class Graph : MonoBehaviour{
         XAxis xAxis = chart.EnsureChartComponent<XAxis>();
         xAxis.type = Axis.AxisType.Value; 
         xAxis.axisName.show = true;
-        xAxis.axisName.name = "Average Density";
+        xAxis.axisName.name = "Number of Boids";
 
         YAxis yAxis = chart.EnsureChartComponent<YAxis>();
         yAxis.type = Axis.AxisType.Value;
@@ -290,33 +230,30 @@ public class Graph : MonoBehaviour{
 
         Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
         tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Density Bin: {c0:f1} <br/> Optimal Size: {c1}";
+        tooltip.itemFormatter = "{a} <br/> Boids: {c0} <br/> Optimal Size: {c1}";
 
-        float densityBinSize = 5.0f; 
-        
-        Dictionary<float, ExperimentRecord> optimalRecords = new Dictionary<float, ExperimentRecord>();
+        Dictionary<int, float> optimalSizes = new Dictionary<int, float>();
+        Dictionary<int, float> lowestTimes = new Dictionary<int, float>();
 
         foreach(ExperimentRecord record in experimentRecords) {
             if(record.searchAlgo != SearchAlgos.UNIFORMGRID) continue;
 
-            float binnedDensity = Mathf.Round(record.averageDensity / densityBinSize) * densityBinSize;
-            
-            if(!optimalRecords.ContainsKey(binnedDensity)) {
-                optimalRecords[binnedDensity] = record;
-            } else if (record.averageTotalMS < optimalRecords[binnedDensity].averageTotalMS) {
-                optimalRecords[binnedDensity] = record;
+            int boids = record.numBoids;
+            if(!lowestTimes.ContainsKey(boids) || record.averageTotalMS < lowestTimes[boids]) {
+                lowestTimes[boids] = record.averageTotalMS;
+                optimalSizes[boids] = record.leafCapacityOrCellSize;
             }
         }
 
-        List<ExperimentRecord> sortedOptimalRecords = optimalRecords.Values.OrderBy(record => record.averageDensity).ToList();
+        List<int> sortedBoids = optimalSizes.Keys.ToList();
+        sortedBoids.Sort();
 
-        foreach(ExperimentRecord optimalRecord in sortedOptimalRecords) {
-            float plotDensity = Mathf.Round(optimalRecord.averageDensity / densityBinSize) * densityBinSize;
-            chart.AddData(0, plotDensity, optimalRecord.leafCapacityOrCellSize); 
+        foreach(int boids in sortedBoids) {
+            chart.AddData(0, boids, optimalSizes[boids]); 
         }
     }
 
-void generateQuadtreeOptimalParameterByDensityLine(LineChart chart, string title, string subTitle) {
+    void generateQuadtreeOptimalParameterByBoidsLine(LineChart chart, string title, string subTitle) {
         addTitleToChart(chart, title, subTitle);
         enableLegend(chart);
 
@@ -326,7 +263,7 @@ void generateQuadtreeOptimalParameterByDensityLine(LineChart chart, string title
         XAxis xAxis = chart.EnsureChartComponent<XAxis>();
         xAxis.type = Axis.AxisType.Value; 
         xAxis.axisName.show = true;
-        xAxis.axisName.name = "Average Density";
+        xAxis.axisName.name = "Number of Boids";
 
         YAxis yAxis = chart.EnsureChartComponent<YAxis>();
         yAxis.type = Axis.AxisType.Value;
@@ -335,64 +272,26 @@ void generateQuadtreeOptimalParameterByDensityLine(LineChart chart, string title
 
         Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
         tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Density Bin: {c0:f1} <br/> Optimal Capacity: {c1}";
+        tooltip.itemFormatter = "{a} <br/> Boids: {c0} <br/> Optimal Capacity: {c1}";
 
-        float densityBinSize = 1.0f; 
-        
-        // Group all records by their density bin
-        Dictionary<float, List<ExperimentRecord>> binnedRecords = new Dictionary<float, List<ExperimentRecord>>();
+        Dictionary<int, float> optimalCapacities = new Dictionary<int, float>();
+        Dictionary<int, float> lowestTimes = new Dictionary<int, float>();
 
         foreach(ExperimentRecord record in experimentRecords) {
             if(record.searchAlgo != SearchAlgos.QUADTREE) continue;
 
-            float binnedDensity = Mathf.Round(record.averageDensity / densityBinSize) * densityBinSize;
-            
-            if(!binnedRecords.ContainsKey(binnedDensity)) {
-                binnedRecords[binnedDensity] = new List<ExperimentRecord>();
+            int boids = record.numBoids;
+            if(!lowestTimes.ContainsKey(boids) || record.averageTotalMS < lowestTimes[boids]) {
+                lowestTimes[boids] = record.averageTotalMS;
+                optimalCapacities[boids] = record.leafCapacityOrCellSize;
             }
-            binnedRecords[binnedDensity].Add(record);
         }
 
-        List<(float density, float optimalCapacity)> smoothedOptimalData = new List<(float, float)>();
+        List<int> sortedBoids = optimalCapacities.Keys.ToList();
+        sortedBoids.Sort();
 
-        foreach(KeyValuePair<float, List<ExperimentRecord>> binKvp in binnedRecords) {
-            float currentDensityBin = binKvp.Key;
-            List<ExperimentRecord> recordsInBin = binKvp.Value;
-
-            // Group the records in this specific bin by their Leaf Capacity
-            Dictionary<float, List<float>> timesByCapacity = new Dictionary<float, List<float>>();
-            
-            foreach(ExperimentRecord r in recordsInBin) {
-                if (!timesByCapacity.ContainsKey(r.leafCapacityOrCellSize)) {
-                    timesByCapacity[r.leafCapacityOrCellSize] = new List<float>();
-                }
-                timesByCapacity[r.leafCapacityOrCellSize].Add(r.averageTotalMS);
-            }
-
-            // Find the capacity with the lowest AVERAGE time to defeat outliers
-            float bestCapacity = 0f;
-            float lowestAvgMS = float.MaxValue;
-
-            foreach(KeyValuePair<float, List<float>> capacityKvp in timesByCapacity) {
-                float sumMS = 0f;
-                foreach(float time in capacityKvp.Value) {
-                    sumMS += time;
-                }
-                float avgMS = sumMS / capacityKvp.Value.Count;
-
-                if (avgMS < lowestAvgMS) {
-                    lowestAvgMS = avgMS;
-                    bestCapacity = capacityKvp.Key;
-                }
-            }
-
-            smoothedOptimalData.Add((currentDensityBin, bestCapacity));
-        }
-
-        List<(float density, float optimalCapacity)> sortedData = smoothedOptimalData.OrderBy(item => item.density).ToList();
-
-        foreach((float density, float optimalCapacity) in sortedData) {
-            chart.AddData(0, density, optimalCapacity); 
+        foreach(int boids in sortedBoids) {
+            chart.AddData(0, boids, optimalCapacities[boids]); 
         }
     }
 }

@@ -1026,9 +1026,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc0b2f9a0bdea7b4f8bd9eb0ea018489, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ExperimentManager
-  recordingSeconds: 25
+  recordingSeconds: 10
   warmupSeconds: 5
-  mapSizes: 320000006400000096000000c8000000fa0000002c0100005e01000090010000c2010000f401000026020000580200008a020000bc020000ee020000200300005203000084030000b6030000e8030000
+  entityCounts: 3200000064000000fa000000f4010000ee020000e8030000dc050000b80b0000
   cellSizesScalars:
   - 0.5
   - 1
@@ -1042,6 +1042,7 @@ MonoBehaviour:
   - 100
   - 200
   leafCapacities: 0100000002000000040000000800000010000000200000004000000080000000000100000002000000040000
+  mapSize: 250
   simParams: {fileID: 11400000, guid: abc7d79c43c2a1f4bb436b20d1de1741, type: 2}
   boidInfo: {fileID: 11400000, guid: 154346b5e865a25428c01c53d2966e8c, type: 2}
   startExperiments: 0
