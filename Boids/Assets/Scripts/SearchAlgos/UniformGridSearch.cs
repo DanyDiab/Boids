@@ -221,4 +221,6 @@ public class UniformGridSearch : IBoidSearch {
         }
         return (numNeighbors, numChecks, currNeighbors);
     }
+
+    public int NumBoids => numBoids;
 }

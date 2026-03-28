@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a70e6f0e2caf34b4d89c760ae003911b, type: 3}
   m_Name: SimParams
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
-  numBoids: 1000
-  simBoundRadius: 250
-  currSearchAlgo: 0
-  cellSize: 1600
-  leafCapacity: 1024
+  numBoids: 200
+  simBoundRadius: 100
+  currSearchAlgo: 1
+  cellSize: 5
+  leafCapacity: 5
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}
     cellColor: {r: 0, g: 0, b: 0, a: 1}
@@ -25,3 +25,9 @@ MonoBehaviour:
     showBoidHeading: 0
     showGrid: 0
     showNeighbors: 0
+  isVisualizingSearch: 0
+  targetBoidID: 0
+  searchVisLerpSpeed: 3.8
+  highlightCellColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  distanceCheckLineColor: {r: 1, g: 0, b: 0, a: 1}
+  zoomOrthographicSize: 10

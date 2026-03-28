@@ -232,6 +232,8 @@ namespace QuadTree {
             return (numNeighbors,numChecks,currNeighbors);
         }
 
+        public int NumBoids => numBoids;
+
 
     // grabs a new node if available, otherwise allocates
         Node grabFromPool(int firstChild) {

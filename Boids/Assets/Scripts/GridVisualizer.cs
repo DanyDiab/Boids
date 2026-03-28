@@ -9,10 +9,12 @@ public class GridVisualizer : MonoBehaviour {
     [Header("Simulation Reference")]
     [SerializeField] SimulationParameters simParams;
     [SerializeField] BoidManager boidManager;
+    [SerializeField] BoidInfo boidInfo;
     
     [Header("Visualization Settings")]
     [SerializeField] int currentDepth = 0;
     public float strokeWidth = 2f;
+    public float lineStrokeWidth = 4f;
     public Color strokeColor = Color.green;
     public StrokeRenderType strokeRenderType = StrokeRenderType.ScreenSpacePixels;
     public float yOffset = 0.5f;
@@ -117,7 +119,7 @@ public class GridVisualizer : MonoBehaviour {
         Time.timeScale = Mathf.Lerp(1f, minTimeScale, currentLerpFactor);
 
         // Lerp Camera
-        if (currentLerpFactor > 0) {
+        if (currentLerpFactor > 0 && cachedSearchAlgo != SearchAlgos.BF) {
             Boid targetBoid = GetTargetBoid();
             if (targetBoid != null) {
                 Vector3 targetPos = targetBoid.transform.position;
@@ -126,10 +128,15 @@ public class GridVisualizer : MonoBehaviour {
                 mainCam.transform.position = Vector3.Lerp(defaultCameraPosition, cameraTargetPos, currentLerpFactor);
                 mainCam.orthographicSize = Mathf.Lerp(defaultOrthographicSize, simParams.ZoomOrthographicSize, currentLerpFactor);
             }
-        } else if (currentLerpFactor == 0 && !simParams.IsVisualizingSearch) {
-            // Only snap back when fully returned to 0
-            mainCam.transform.position = defaultCameraPosition;
-            mainCam.orthographicSize = defaultOrthographicSize;
+        } else if (currentLerpFactor == 0 && !simParams.IsVisualizingSearch || (currentLerpFactor > 0 && cachedSearchAlgo == SearchAlgos.BF)) {
+            // Only snap back when fully returned to 0 or stay at default if BF
+            if (cachedSearchAlgo == SearchAlgos.BF) {
+                 mainCam.transform.position = defaultCameraPosition;
+                 mainCam.orthographicSize = defaultOrthographicSize;
+            } else if (currentLerpFactor == 0) {
+                 mainCam.transform.position = defaultCameraPosition;
+                 mainCam.orthographicSize = defaultOrthographicSize;
+            }
         }
     }
 
@@ -167,6 +174,10 @@ public class GridVisualizer : MonoBehaviour {
             if (simParams.IsVisualizingSearch && highlightIDs != null) {
                 DrawSearchLines(highlightIDs);
             }
+        } else if (cachedSearchAlgo == SearchAlgos.BF) {
+            if (simParams.IsVisualizingSearch) {
+                DrawBFSearchLines();
+            }
         }
 
         // Deactivate unused shapes in the pools
@@ -192,7 +203,7 @@ public class GridVisualizer : MonoBehaviour {
     void DrawSearchLines(int[] neighborCellIDs) {
         UniformGridSearch gridSearch = boidManager.search as UniformGridSearch;
         Boid targetBoid = GetTargetBoid();
-        if (gridSearch == null || targetBoid == null) return;
+        if (gridSearch == null || targetBoid == null || boidInfo == null) return;
 
         Vector3 targetPos = targetBoid.transform.position;
 
@@ -354,11 +365,28 @@ public class GridVisualizer : MonoBehaviour {
         shape.ShapeData.AddPolyPoint(e);
 
         shape.ShapeData.SetStrokeColor(color);
-        shape.ShapeData.SetStrokeWidth(strokeWidth * 0.5f);
+        shape.ShapeData.SetStrokeWidth(lineStrokeWidth);
 
         // Notify VectorShapes that data changed
         shape.ShapeData = shape.ShapeData;
         
         activeLineCount++;
+    }
+
+    void DrawBFSearchLines() {
+        IBoidSearch search = boidManager.search;
+        Boid targetBoid = GetTargetBoid();
+        if (search == null || targetBoid == null || boidManager.boids == null || boidInfo == null) return;
+
+        Vector3 targetPos = targetBoid.transform.position;
+        int numBoids = simParams.NumBoids;
+        
+        for (int i = 0; i < numBoids; i++) {
+            if (i == simParams.TargetBoidID) continue;
+            Boid candBoid = boidManager.boids[i];
+            if (candBoid != null) {
+                CreateOrUpdateLine(targetPos, candBoid.transform.position, simParams.DistanceCheckLineColor);
+            }
+        }
     }
 }

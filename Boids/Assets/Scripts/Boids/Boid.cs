@@ -20,6 +20,8 @@ public class Boid : MonoBehaviour{
     [SerializeField] Vector3 currHeading;
     int myIndex;
     GameObject boid; 
+    MeshRenderer boidRenderer;
+    Color originalColor;
 
     [Header("SOs")]
     BoidInfo boidInfo;
@@ -52,6 +54,12 @@ public class Boid : MonoBehaviour{
         this.search = search;
         this.boidInfo = boidInfo;
         this.simParams = simParams;
+
+        boidRenderer = boid.GetComponentInChildren<MeshRenderer>();
+        if (boidRenderer != null) {
+            originalColor = boidRenderer.material.color;
+        }
+
         Vector2 rand = UnityEngine.Random.onUnitSphere;
         currHeading = new Vector3(rand.x,0,rand.y).normalized;
         outsideTimer = 0;
@@ -59,11 +67,21 @@ public class Boid : MonoBehaviour{
     }
 
     public void disable() {
+        if (boidRenderer != null) {
+            boidRenderer.material.color = originalColor;
+        }
         search.RemoveBoid(myIndex);
         boid.SetActive(false);
     }
     
     void Update(){
+        if (boidRenderer != null) {
+            if (simParams.IsVisualizingSearch && simParams.TargetBoidID == myIndex) {
+                boidRenderer.material.color = simParams.HighlightBoidColor;
+            } else {
+                boidRenderer.material.color = originalColor;
+            }
+        }
         move();
     }
 

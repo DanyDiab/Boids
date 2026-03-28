@@ -44,4 +44,6 @@ public class BFNeighborSearch : IBoidSearch {
         }
         return (numNeighbors, numChecks, currNeighbors);
     }
+
+    public int NumBoids => numBoids;
 }

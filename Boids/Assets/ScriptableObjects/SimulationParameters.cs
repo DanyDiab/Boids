@@ -33,6 +33,8 @@ public class SimulationParameters : ScriptableObject{
     [Range(0.1f, 10f)]
     [SerializeField] float searchVisLerpSpeed = 2f;
     [SerializeField] Color highlightCellColor = Color.yellow;
+    [SerializeField] Color highlightBoidColor = Color.green;
+    [SerializeField] Color highlightLineColor = Color.green;
     [SerializeField] Color distanceCheckLineColor = Color.red;
     [SerializeField] float zoomOrthographicSize = 10f;
 
@@ -51,6 +53,8 @@ public class SimulationParameters : ScriptableObject{
     public int TargetBoidID { get => targetBoidID; set => targetBoidID = value; }
     public float SearchVisLerpSpeed { get => searchVisLerpSpeed; set => searchVisLerpSpeed = value; }
     public Color HighlightCellColor { get => highlightCellColor; set => highlightCellColor = value; }
+    public Color HighlightBoidColor { get => highlightBoidColor; set => highlightBoidColor = value; }
+    public Color HighlightLineColor { get => highlightLineColor; set => highlightLineColor = value; }
     public Color DistanceCheckLineColor { get => distanceCheckLineColor; set => distanceCheckLineColor = value; }
     public float ZoomOrthographicSize { get => zoomOrthographicSize; set => zoomOrthographicSize = value; }
 }
