@@ -30,6 +30,8 @@ public class SimulationParameters : ScriptableObject{
     [Header("Search Visualization")]
     [SerializeField] bool isVisualizingSearch;
     [SerializeField] int targetBoidID;
+    [SerializeField] List<int> highlightedNodeIndices = new List<int>();
+    [SerializeField] List<int> highlightedBoidIndices = new List<int>();
     [Range(0.1f, 10f)]
     [SerializeField] float searchVisLerpSpeed = 2f;
     [SerializeField] Color highlightCellColor = Color.yellow;
@@ -44,6 +46,9 @@ public class SimulationParameters : ScriptableObject{
     public float SimBoundRadius { get => simBoundRadius; set => simBoundRadius = value; }
     public int CellSize { get => cellSize; set => cellSize = value; }
     public List<Node> Nodes { get => nodes; set => nodes = value; }
+    public List<int> HighlightedNodeIndices { get => highlightedNodeIndices; set => highlightedNodeIndices = value; }
+    public List<int> HighlightedBoidIndices { get => highlightedBoidIndices; set => highlightedBoidIndices = value; }
+
 
     public SearchAlgos CurrSearchAlgo {get => currSearchAlgo; set => currSearchAlgo = value; }
     public UniformGridSearch Search { get => search; set => search = value; }

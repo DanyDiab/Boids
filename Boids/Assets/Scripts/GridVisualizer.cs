@@ -161,7 +161,15 @@ public class GridVisualizer : MonoBehaviour {
 
         if (cachedSearchAlgo == SearchAlgos.QUADTREE) {
             if (simParams.Nodes != null && simParams.Nodes.Count > 0) {
+                if (simParams.IsVisualizingSearch) {
+                    UpdateQuadTreeSearchData();
+                }
+
                 DrawNode(0, new Vector2(cachedSimBoundRadius, cachedSimBoundRadius), new Vector2(-cachedSimBoundRadius / 2f, -cachedSimBoundRadius / 2f), 0);
+                
+                if (simParams.IsVisualizingSearch) {
+                    DrawQuadTreeSearchLines();
+                }
             }
         } else if (cachedSearchAlgo == SearchAlgos.UNIFORMGRID) {
             int[] highlightIDs = null;
@@ -186,6 +194,34 @@ public class GridVisualizer : MonoBehaviour {
         }
         for (int i = activeLineCount; i < linePool.Count; i++) {
             if (linePool[i].activeSelf) linePool[i].SetActive(false);
+        }
+    }
+
+    void UpdateQuadTreeSearchData() {
+        if (boidManager == null || boidManager.search == null) return;
+        QuadTreeSearch qtSearch = boidManager.search as QuadTreeSearch;
+        if (qtSearch == null) return;
+
+        Boid targetBoid = GetTargetBoid();
+        if (targetBoid == null) return;
+
+        float maxRadius = Mathf.Max(Mathf.Max(boidInfo.SeparationRadius, boidInfo.AlignmentRadius), boidInfo.CohesionRadius);
+        qtSearch.GetSearchVisualData(targetBoid.transform.position, maxRadius, simParams.HighlightedNodeIndices, simParams.HighlightedBoidIndices);
+    }
+
+    void DrawQuadTreeSearchLines() {
+        Boid targetBoid = GetTargetBoid();
+        if (targetBoid == null || boidInfo == null || boidManager == null || boidManager.boids == null) return;
+
+        Vector3 targetPos = targetBoid.transform.position;
+
+        foreach (int candID in simParams.HighlightedBoidIndices) {
+            if (candID == simParams.TargetBoidID) continue;
+            if (candID < 0 || candID >= boidManager.boids.Length) continue;
+            Boid candBoid = boidManager.boids[candID];
+            if (candBoid != null) {
+                CreateOrUpdateLine(targetPos, candBoid.transform.position, simParams.DistanceCheckLineColor);
+            }
         }
     }
 
@@ -232,38 +268,48 @@ public class GridVisualizer : MonoBehaviour {
             int colNumber = i % numCellsRow; // This is the X index
             float xPos = (-cachedSimBoundRadius / 2f) + (colNumber * sizePerCell) + (sizePerCell / 2f);
             float zPos = (-cachedSimBoundRadius / 2f) + (rowNumber * sizePerCell) + (sizePerCell / 2f);
-            Vector3 finalPosition = new Vector3(xPos, yOffset, zPos);
             
+            float currentY = yOffset;
             Color? color = null;
             if (highlightIDs != null) {
                 for (int j = 0; j < highlightIDs.Length; j++) {
                     if (highlightIDs[j] == i) {
                         color = simParams.HighlightCellColor;
+                        currentY += 0.1f; // Offset highlighted cells upwards
                         break;
                     }
                 }
             }
 
+            Vector3 finalPosition = new Vector3(xPos, currentY, zPos);
             CreateOrUpdateRectangle(finalPosition, sizePerCell, sizePerCell, color);
         }
     }
 
     void DrawNode(int index, Vector2 boxDims, Vector2 offset, int depth) {
-        if (depth > currentDepth) return;
+        if (depth > currentDepth && !simParams.IsVisualizingSearch) return;
         
         List<Node> nodes = simParams.Nodes;
         if (index >= nodes.Count || index < 0) return;
 
+        float currentY = yOffset + (depth * 0.01f); // Increment Y slightly with depth
+        
+        Color? overrideColor = null;
+        if (simParams.IsVisualizingSearch && simParams.HighlightedNodeIndices.Contains(index)) {
+            overrideColor = simParams.HighlightCellColor;
+            currentY += 0.1f; // Highlighted nodes go even higher
+        }
+
         // VectorShapes Rectangles are centered on their transform by default.
         // We calculate the center of the quadrant to align it with the world.
-        Vector3 centerPosition = new Vector3(offset.x + (boxDims.x / 2f), yOffset, offset.y + (boxDims.y / 2f));
+        Vector3 centerPosition = new Vector3(offset.x + (boxDims.x / 2f), currentY, offset.y + (boxDims.y / 2f));
         
-        CreateOrUpdateRectangle(centerPosition, boxDims.x, boxDims.y);
+        CreateOrUpdateRectangle(centerPosition, boxDims.x, boxDims.y, overrideColor);
 
         Node currNode = nodes[index];
         int firstChild = currNode.FirstChild;
         
-        if (firstChild != -1 && depth < currentDepth) {
+        if (firstChild != -1 && (depth < currentDepth || simParams.IsVisualizingSearch)) {
            Vector2 newDims = new Vector2(boxDims.x / 2f, boxDims.y / 2f);
            
            // Calculate the 4 quadrants following SimManager/QuadTreeSearch logic

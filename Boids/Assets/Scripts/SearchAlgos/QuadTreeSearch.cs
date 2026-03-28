@@ -169,10 +169,15 @@ namespace QuadTree {
             return false;
         }
 
-        void FindTouchingLeafs(Vector3 position, float radius, int nodeIndex, Vector2 boxDims, Vector2 offset, List<int> result) {
+        void FindTouchingLeafs(Vector3 position, float radius, int nodeIndex, Vector2 boxDims, Vector2 offset, List<int> result, List<int> outNodeIndices = null) {
             if (!IsBoidTouchingQuadrent(position, radius, boxDims, offset)) {
                 return;
             }
+
+            if (outNodeIndices != null) {
+                outNodeIndices.Add(nodeIndex);
+            }
+
             Node currNode = nodes[nodeIndex];
             int firstChild = currNode.FirstChild;
             // branch
@@ -184,16 +189,16 @@ namespace QuadTree {
                 Vector2 br = new Vector2(offset.x + newDims.x, offset.y + newDims.y);
 
                 if (IsBoidTouchingQuadrent(position, radius, newDims, tl)) {
-                    FindTouchingLeafs(position,radius,firstChild,newDims,tl, result);
+                    FindTouchingLeafs(position,radius,firstChild,newDims,tl, result, outNodeIndices);
                 }
                 if (IsBoidTouchingQuadrent(position, radius, newDims, tr)) {
-                    FindTouchingLeafs(position,radius,firstChild + 1,newDims,tr,result);
+                    FindTouchingLeafs(position,radius,firstChild + 1,newDims,tr,result, outNodeIndices);
                 }
                 if (IsBoidTouchingQuadrent(position, radius, newDims, bl)) {
-                    FindTouchingLeafs(position,radius,firstChild + 2,newDims,bl,result);
+                    FindTouchingLeafs(position,radius,firstChild + 2,newDims,bl,result, outNodeIndices);
                 }
                 if (IsBoidTouchingQuadrent(position, radius, newDims, br)) {
-                    FindTouchingLeafs(position,radius,firstChild + 3,newDims, br,result);
+                    FindTouchingLeafs(position,radius,firstChild + 3,newDims, br,result, outNodeIndices);
                 }
                 return;
             }
@@ -201,6 +206,13 @@ namespace QuadTree {
             else {
                 result.AddRange(currNode.BoidIDs);
             }
+        }
+
+        public void GetSearchVisualData(Vector3 position, float radius, List<int> outNodeIndices, List<int> outBoidIDs) {
+            outNodeIndices.Clear();
+            outBoidIDs.Clear();
+            Vector2 boxDims = new Vector2(simBoundRadius,simBoundRadius);
+            FindTouchingLeafs(position, radius, 0, boxDims, new Vector2(-simBoundRadius / 2,-simBoundRadius / 2), outBoidIDs, outNodeIndices);
         }
 
         public (int numNeighbors, int numChecks, Boid[] neighbors) FindNeighbors(int index, float radius) {
@@ -211,6 +223,7 @@ namespace QuadTree {
             Vector2 boxDims = new Vector2(simBoundRadius,simBoundRadius);
             
             foundBoids.Clear();
+
             FindTouchingLeafs(position,radius,0,boxDims,new Vector2(-simBoundRadius / 2,-simBoundRadius / 2),foundBoids);
 
             int numNeighbors = 0;
