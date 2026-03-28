@@ -38,7 +38,11 @@ public class SimulationParameters : ScriptableObject{
     [SerializeField] Color highlightBoidColor = Color.green;
     [SerializeField] Color highlightLineColor = Color.green;
     [SerializeField] Color distanceCheckLineColor = Color.red;
-    [SerializeField] float zoomOrthographicSize = 10f;
+    [SerializeField] Color separationRadiusColor = Color.red;
+    [SerializeField] Color alignmentRadiusColor = Color.blue;
+    [SerializeField] Color cohesionRadiusColor = Color.green;
+    [SerializeField] float quadTreeZoomOrthographicSize = 40f;
+    [SerializeField] float uniformGridZoomOrthographicSize = 10f;
 
     public int NumBoids { get => numBoids; set => numBoids = value; }
     public int LeafCapacity { get => leafCapacity; set => leafCapacity = value; }
@@ -61,5 +65,10 @@ public class SimulationParameters : ScriptableObject{
     public Color HighlightBoidColor { get => highlightBoidColor; set => highlightBoidColor = value; }
     public Color HighlightLineColor { get => highlightLineColor; set => highlightLineColor = value; }
     public Color DistanceCheckLineColor { get => distanceCheckLineColor; set => distanceCheckLineColor = value; }
-    public float ZoomOrthographicSize { get => zoomOrthographicSize; set => zoomOrthographicSize = value; }
+    public Color SeparationRadiusColor { get => separationRadiusColor; set => separationRadiusColor = value; }
+    public Color AlignmentRadiusColor { get => alignmentRadiusColor; set => alignmentRadiusColor = value; }
+    public Color CohesionRadiusColor { get => cohesionRadiusColor; set => cohesionRadiusColor = value; }
+    public float QuadTreeZoomOrthographicSize { get => quadTreeZoomOrthographicSize; set => quadTreeZoomOrthographicSize = value; }
+    public float UniformGridZoomOrthographicSize { get => uniformGridZoomOrthographicSize; set => uniformGridZoomOrthographicSize = value; }
+    public float CurrentZoomSize => currSearchAlgo == SearchAlgos.QUADTREE ? quadTreeZoomOrthographicSize : uniformGridZoomOrthographicSize;
 }

@@ -33,6 +33,10 @@ public class GridVisualizer : MonoBehaviour {
     List<GameObject> linePool = new List<GameObject>();
     int activeLineCount = 0;
 
+    // Separate pool for radii circles
+    List<GameObject> circlePool = new List<GameObject>();
+    int activeCircleCount = 0;
+
     // Lerp state for visualization
     float currentLerpFactor = 0f;
     const float minTimeScale = 0.05f;
@@ -126,7 +130,7 @@ public class GridVisualizer : MonoBehaviour {
                 Vector3 cameraTargetPos = new Vector3(targetPos.x, defaultCameraPosition.y, targetPos.z);
                 
                 mainCam.transform.position = Vector3.Lerp(defaultCameraPosition, cameraTargetPos, currentLerpFactor);
-                mainCam.orthographicSize = Mathf.Lerp(defaultOrthographicSize, simParams.ZoomOrthographicSize, currentLerpFactor);
+                mainCam.orthographicSize = Mathf.Lerp(defaultOrthographicSize, simParams.CurrentZoomSize, currentLerpFactor);
             }
         } else if (currentLerpFactor == 0 && !simParams.IsVisualizingSearch || (currentLerpFactor > 0 && cachedSearchAlgo == SearchAlgos.BF)) {
             // Only snap back when fully returned to 0 or stay at default if BF
@@ -156,8 +160,13 @@ public class GridVisualizer : MonoBehaviour {
     public void DrawVisualization() {
         activeShapeCount = 0;
         activeLineCount = 0;
+        activeCircleCount = 0;
 
         if (simParams == null) return;
+
+        if (simParams.IsVisualizingSearch) {
+            DrawSearchRadii();
+        }
 
         if (cachedSearchAlgo == SearchAlgos.QUADTREE) {
             if (simParams.Nodes != null && simParams.Nodes.Count > 0) {
@@ -194,6 +203,9 @@ public class GridVisualizer : MonoBehaviour {
         }
         for (int i = activeLineCount; i < linePool.Count; i++) {
             if (linePool[i].activeSelf) linePool[i].SetActive(false);
+        }
+        for (int i = activeCircleCount; i < circlePool.Count; i++) {
+            if (circlePool[i].activeSelf) circlePool[i].SetActive(false);
         }
     }
 
@@ -255,6 +267,18 @@ public class GridVisualizer : MonoBehaviour {
                 }
             }
         }
+    }
+
+    void DrawSearchRadii() {
+        Boid targetBoid = GetTargetBoid();
+        if (targetBoid == null || boidInfo == null) return;
+
+        Vector3 pos = targetBoid.transform.position;
+        pos.y = yOffset + 0.2f; // Slightly above cells and lines
+
+        CreateOrUpdateCircle(pos, boidInfo.SeparationRadius, simParams.SeparationRadiusColor);
+        CreateOrUpdateCircle(pos, boidInfo.AlignmentRadius, simParams.AlignmentRadiusColor);
+        CreateOrUpdateCircle(pos, boidInfo.CohesionRadius, simParams.CohesionRadiusColor);
     }
 
     void DrawUniformGrid(int[] highlightIDs = null) {
@@ -417,6 +441,49 @@ public class GridVisualizer : MonoBehaviour {
         shape.ShapeData = shape.ShapeData;
         
         activeLineCount++;
+    }
+
+    void CreateOrUpdateCircle(Vector3 position, float radius, Color color) {
+        GameObject obj;
+        Shape shape;
+
+        if (activeCircleCount < circlePool.Count) {
+            obj = circlePool[activeCircleCount];
+            if (!obj.activeSelf) obj.SetActive(true);
+            shape = obj.GetComponent<Shape>();
+        } else {
+            obj = new GameObject("RadiusCircle_" + activeCircleCount);
+            obj.transform.parent = transform;
+            obj.transform.localRotation = Quaternion.Euler(-90, 0, 0);
+            shape = obj.AddComponent<Shape>();
+            shape.ShapeData.ShapeType = ShapeType.Circle;
+            shape.ShapeData.IsFillEnabled = false;
+            shape.ShapeData.IsStrokeEnabled = true;
+            shape.ShapeData.StrokeRenderType = strokeRenderType;
+            circlePool.Add(obj);
+        }
+
+        obj.transform.localPosition = position;
+        
+        bool needsUpdate = false;
+        if (shape.ShapeData.ShapeSize.x != radius * 2) {
+            shape.ShapeData.ShapeSize = new Vector2(radius * 2, radius * 2);
+            needsUpdate = true;
+        }
+        if (shape.ShapeData.GetStrokeColor() != color) {
+            shape.ShapeData.SetStrokeColor(color);
+            needsUpdate = true;
+        }
+        if (shape.ShapeData.GetStrokeWidth() != lineStrokeWidth) {
+            shape.ShapeData.SetStrokeWidth(lineStrokeWidth);
+            needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+            shape.ShapeData = shape.ShapeData;
+        }
+
+        activeCircleCount++;
     }
 
     void DrawBFSearchLines() {
