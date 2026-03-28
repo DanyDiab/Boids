@@ -181,8 +181,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::QuadTreeVisualizer
   simParams: {fileID: 11400000, guid: abc7d79c43c2a1f4bb436b20d1de1741, type: 2}
   boidManager: {fileID: 1079873268}
+  boidInfo: {fileID: 11400000, guid: 154346b5e865a25428c01c53d2966e8c, type: 2}
   currentDepth: 0
   strokeWidth: 2
+  lineStrokeWidth: 2
   strokeColor: {r: 0, g: 0, b: 0, a: 1}
   strokeRenderType: 0
   yOffset: 0.5

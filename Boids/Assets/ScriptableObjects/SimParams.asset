@@ -26,8 +26,10 @@ MonoBehaviour:
     showGrid: 0
     showNeighbors: 0
   isVisualizingSearch: 0
-  targetBoidID: 0
-  searchVisLerpSpeed: 3.8
+  targetBoidID: 17
+  searchVisLerpSpeed: 2
   highlightCellColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  highlightBoidColor: {r: 0, g: 1, b: 0, a: 1}
+  highlightLineColor: {r: 0, g: 1, b: 0, a: 1}
   distanceCheckLineColor: {r: 1, g: 0, b: 0, a: 1}
-  zoomOrthographicSize: 10
+  zoomOrthographicSize: 15
