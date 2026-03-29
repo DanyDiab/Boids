@@ -23,6 +23,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/UniformGrid.unity
     guid: feedc95897a8d68488e38f96dfcd3e07
+  - enabled: 1
+    path: Assets/Scenes/Title.unity
+    guid: 091b6cdb00c7d9f4582c42888b4c5e64
+  - enabled: 1
+    path: Assets/Scenes/Hypothesis.unity
+    guid: 8c2b4c9e99ac6d54d904a0bebfcd027d
+  - enabled: 1
+    path: Assets/Scenes/Previous Work.unity
+    guid: eb719fd4f91ba464d81c62d5da86a5cd
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

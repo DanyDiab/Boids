@@ -46,6 +46,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SlideManager
   scenes:
   - Title
+  - Previous Work
+  - Hypothesis
   - BoidEditScene
   - BoidScene
   - OverallPerformance
