@@ -86,6 +86,7 @@ public class Boid : MonoBehaviour{
     }
 
     void move() {
+        grabValuesFromSO();
         Boid[] neighbors;
         int numNeighbors;
         int numChecks;
@@ -96,7 +97,10 @@ public class Boid : MonoBehaviour{
         float totalTime = (float)stopwatch.Elapsed.TotalMilliseconds;
         Vector3 desiredHeading = currHeading;
         if(numNeighbors > 0) {
-            desiredHeading = calculateForces(numNeighbors,neighbors);
+            Vector3 force = calculateForces(numNeighbors,neighbors);
+            if (force.sqrMagnitude > 0.001f) {
+                desiredHeading = force;
+            }
         }
         desiredHeading += getCenterForceScaled();
         currHeading = Vector3.Lerp(currHeading, desiredHeading.normalized, Time.deltaTime * turnSpeed).normalized;

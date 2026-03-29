@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SimulationParameters
   numBoids: 200
   simBoundRadius: 100
-  currSearchAlgo: 1
-  cellSize: 5
+  currSearchAlgo: 2
+  cellSize: 8
   leafCapacity: 5
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}
@@ -25,11 +25,17 @@ MonoBehaviour:
     showBoidHeading: 0
     showGrid: 0
     showNeighbors: 0
-  isVisualizingSearch: 0
-  targetBoidID: 17
+  isVisualizingSearch: 1
+  targetBoidID: 0
+  highlightedNodeIndices: 0000000003000000180000003600000058000000380000000400000007000000290000002b000000
+  highlightedBoidIndices: 0b0000006a000000870000002a00000065000000af00000000000000880000008e000000a6000000
   searchVisLerpSpeed: 2
   highlightCellColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   highlightBoidColor: {r: 0, g: 1, b: 0, a: 1}
   highlightLineColor: {r: 0, g: 1, b: 0, a: 1}
   distanceCheckLineColor: {r: 1, g: 0, b: 0, a: 1}
-  zoomOrthographicSize: 15
+  separationRadiusColor: {r: 1, g: 0, b: 0, a: 1}
+  alignmentRadiusColor: {r: 0, g: 0, b: 1, a: 1}
+  cohesionRadiusColor: {r: 0, g: 1, b: 0, a: 1}
+  quadTreeZoomOrthographicSize: 40
+  uniformGridZoomOrthographicSize: 15
