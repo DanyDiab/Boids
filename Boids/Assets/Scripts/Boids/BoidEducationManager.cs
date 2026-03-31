@@ -34,10 +34,24 @@ public class BoidEducationManager : MonoBehaviour
 
     private void Start()
     {
-        // Initialize UI with SO values
         if (separationRadiusSlider != null) separationRadiusSlider.value = boidInfo.SeparationRadius;
         if (alignmentRadiusSlider != null) alignmentRadiusSlider.value = boidInfo.AlignmentRadius;
         if (cohesionRadiusSlider != null) cohesionRadiusSlider.value = boidInfo.CohesionRadius;
+
+        // Initialize Toggles based on current SO weights
+        if (separationToggle != null) separationToggle.SetIsOnWithoutNotify(boidInfo.SeparationForceWeight > 0);
+        if (alignmentToggle != null) alignmentToggle.SetIsOnWithoutNotify(boidInfo.AlignmentForceWeight > 0);
+        if (cohesionToggle != null) cohesionToggle.SetIsOnWithoutNotify(boidInfo.CohesionForceWeight > 0);
+
+        // Determine the current tutorial step based on loaded weights
+        if (boidInfo.SeparationForceWeight > 0 && boidInfo.AlignmentForceWeight > 0 && boidInfo.CohesionForceWeight > 0)
+            currentStep = EducationStep.Combined;
+        else if (boidInfo.CohesionForceWeight > 0)
+            currentStep = EducationStep.Cohesion;
+        else if (boidInfo.AlignmentForceWeight > 0)
+            currentStep = EducationStep.Alignment;
+        else
+            currentStep = EducationStep.Separation;
 
         // Add listeners for sliders with null checks
         if (separationRadiusSlider != null)
@@ -66,7 +80,7 @@ public class BoidEducationManager : MonoBehaviour
         if (alignmentToggle != null) alignmentToggle.onValueChanged.AddListener(OnAlignmentToggleChanged);
         if (cohesionToggle != null) cohesionToggle.onValueChanged.AddListener(OnCohesionToggleChanged);
 
-        UpdateStepUI();
+        RefreshExplanationText();
     }
 
     public void NextStep()

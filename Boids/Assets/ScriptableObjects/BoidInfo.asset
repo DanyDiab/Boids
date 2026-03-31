@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoidInfo
   speed: 10
   turnSpeed: 5
-  separationRadius: 2
-  alignmentRadius: 3
-  cohesionRadius: 4
+  separationRadius: 3
+  alignmentRadius: 4
+  cohesionRadius: 5
   separationForceWeight: 1.5
-  alignmentForceWeight: 0
-  cohesionForceWeight: 0
+  alignmentForceWeight: 1
+  cohesionForceWeight: 1
   centerForceWeight: 5
