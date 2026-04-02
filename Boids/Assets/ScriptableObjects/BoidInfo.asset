@@ -17,7 +17,7 @@ MonoBehaviour:
   separationRadius: 3
   alignmentRadius: 4
   cohesionRadius: 5
-  separationForceWeight: 1.5
-  alignmentForceWeight: 1
+  separationForceWeight: 0
+  alignmentForceWeight: 0
   cohesionForceWeight: 1
   centerForceWeight: 5
