@@ -1,0 +1,13 @@
+{
+    "MapSize": 100,
+    "RandomSeed": -1795505066,
+    "speed": 10.0,
+    "turnSpeed": 5.0,
+    "separationRadius": 3.0,
+    "alignmentRadius": 5.0,
+    "cohesionRadius": 8.0,
+    "separationForceWeight": 5.0,
+    "alignmentForceWeight": 3.0,
+    "cohesionForceWeight": 2.0,
+    "centerForceWeight": 5.0
+}
