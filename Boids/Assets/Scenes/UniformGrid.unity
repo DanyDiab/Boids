@@ -6493,7 +6493,7 @@ MonoBehaviour:
       m_Show: 0
       m_Color: []
     m_Animation:
-      m_Show: 1
+      m_Show: 0
       m_Duration: 0
       m_UnscaledTime: 0
     m_MinorTick:
@@ -7104,6 +7104,7 @@ MonoBehaviour:
   showPerformanceComparison: 0
   showGridOptimal: 1
   showQuadtreeOptimal: 0
+  saveDirectory: Assets/Scripts/Results/Graphs
 --- !u!114 &1321644805
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using System.IO;
+using System.Collections; 
 
 public class Graph : MonoBehaviour {
     [Header("Charts")]
@@ -22,16 +23,26 @@ public class Graph : MonoBehaviour {
     [SerializeField] bool showGridOptimal = true;
     [SerializeField] bool showQuadtreeOptimal = true;
 
+    [Header("Save Settings")]
+    [SerializeField] string saveDirectory = "Assets/Scripts/Results/Graphs";
+
     string resultsPath;
     string fileDir;
     List<ExperimentRecord> experimentRecords;
     
     void Start() {
+
         fileDir = Application.dataPath + "/Scripts/Results";
         resultsPath = $"{fileDir}/ExperimentResults.csv";
         experimentRecords = getCsvData();
+
+        if (!Directory.Exists(saveDirectory)) {
+            Directory.CreateDirectory(saveDirectory);
+        }
         
+        // 1. Generate the charts
         if (showBarChart && barChart != null) {
+            barChart.AnimationEnable(false);
             barChart.gameObject.SetActive(true);
             generatePerformanceBar(barChart, "Optimal Averages", "Averages across the optimal settings for various map sizes");
         } else if (barChart != null) {
@@ -40,6 +51,7 @@ public class Graph : MonoBehaviour {
 
         if (showScatterChart && scatterChart != null) {
             scatterChart.gameObject.SetActive(true);
+            scatterChart.AnimationEnable(false);
             generatePerformanceScatter(scatterChart, "Scatter Chart", "TEST");
         } else if (scatterChart != null) {
             scatterChart.gameObject.SetActive(false);
@@ -47,6 +59,7 @@ public class Graph : MonoBehaviour {
 
         if (showPerformanceComparison && performanceComparisonChart != null) {
             performanceComparisonChart.gameObject.SetActive(true);
+            performanceComparisonChart.AnimationEnable(false);
             generatePerformanceComparisonLine(performanceComparisonChart, "Algorithm Performance", "Number of Boids vs Average Total MS");
         } else if (performanceComparisonChart != null) {
             performanceComparisonChart.gameObject.SetActive(false);
@@ -54,6 +67,8 @@ public class Graph : MonoBehaviour {
 
         if (showGridOptimal && gridOptimalParameterChart != null) {
             gridOptimalParameterChart.gameObject.SetActive(true);
+            gridOptimalParameterChart.AnimationEnable(false);
+
             generateGridOptimalParameterByBoidsLine(gridOptimalParameterChart, "Uniform Grid: Optimal Cell Size", "Number of Boids vs Optimal Cell Size");
         } else if (gridOptimalParameterChart != null) {
             gridOptimalParameterChart.gameObject.SetActive(false);
@@ -61,6 +76,7 @@ public class Graph : MonoBehaviour {
 
         if (showQuadtreeOptimal && quadtreeOptimalParameterChart != null) {
             quadtreeOptimalParameterChart.gameObject.SetActive(true);
+            quadtreeOptimalParameterChart.AnimationEnable(false);
             generateQuadtreeOptimalParameterByBoidsLine(quadtreeOptimalParameterChart, "Quadtree: Optimal Leaf Capacity", "Number of Boids vs Optimal Leaf Capacity");
         } else if (quadtreeOptimalParameterChart != null) {
             quadtreeOptimalParameterChart.gameObject.SetActive(false);
@@ -70,7 +86,7 @@ public class Graph : MonoBehaviour {
     List<ExperimentRecord> getCsvData() {
         List<ExperimentRecord> records;
         using (StreamReader reader = new StreamReader(resultsPath))
-        using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture)){
+        using (CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture)) {
              records = csv.GetRecords<ExperimentRecord>().ToList();
         }
         return records;
