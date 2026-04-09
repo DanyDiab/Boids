@@ -251,6 +251,6 @@ public class Graph : MonoBehaviour {
 
         foreach (var record in highestDensityRecords) {
             chart.AddData(0, record.leafCapacityOrCellSize, record.averageTotalMS);
-        }x
+        }
     }
 }

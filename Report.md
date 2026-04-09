@@ -72,16 +72,16 @@ My initial hypothesis was that the optimal subdivision for both algorithms would
 
 For the uniform grid, the optimal cell size was unaffected by density. Instead, it was always precisely half of the boids' interaction radius (which is the maximum of the three radii acting on the boids). Regardless of how much the density increased, keeping this static cell size yielded the best performance.
 
-![Uniform Grid: Optimal Cell Size](./Boids/Assets/Graphs/UniformGridOptimal.png)
+![Uniform Grid: Optimal Cell Size](./graphs/UniformGridOptimal.png)
 
 This result occurred because the grid's performance strictly improved as the cell size decreased, effectively filtering out more boids and minimizing unnecessary distance checks. However, half the interaction radius represents the mathematical floor for this specific grid implementation. Because the algorithm is hardcoded to query only a boid's current cell and its 8 immediate neighbors (a 3x3 grid space), shrinking the cell size any further would mean this 9-cell search area no longer fully covers the boid's maximum interaction radius. This would cause the simulation to drop valid neighbors and break flocking behaviors. Therefore, the optimal cell size was not a balancing act of competing performance costs, but rather the absolute tightest spatial subdivision the algorithm could support without compromising the correctness of the simulation.
 
-This efficiency is clearly reflected in the distance check data. As the simulation scales, the uniform grid successfully maintains a low number of agent-to-agent distance checks, proving that the spatial subdivision effectively prevents the boids from performing unnecessary brute-force calculations.
 
 ### QuadTree Analysis
 
 On the other hand, the quadtree's optimal leaf capacity was affected by density, though the relationship was not linear. While the optimal leaf capacity generally increased as the simulation became denser, there were significant fluctuations in the data. 
 
+![Quadtree: Optimal Leaf Capacity](./graphs/QuadTreeOptimal.png)
 
 These fluctuations can be attributed to the inherent computational trade-offs of the Quadtree structure. The efficiency of the tree is a balancing act between two distinct computational costs:
 
