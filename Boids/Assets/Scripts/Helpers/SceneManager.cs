@@ -22,7 +22,10 @@ public class SlideManager : MonoBehaviour{
         }
     }
     void Start() {
-       sceneCount = scenes.Count; 
+        string currentScene = SceneManager.GetActiveScene().name;
+        currSceneIndex = scenes.IndexOf(currentScene);
+        Debug.Log(currSceneIndex);
+        sceneCount = scenes.Count; 
     }
 
     void Update() {

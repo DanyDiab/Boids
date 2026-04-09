@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
 using System.IO;
-using System.Collections; 
 
 public class Graph : MonoBehaviour {
     [Header("Charts")]
@@ -15,13 +14,13 @@ public class Graph : MonoBehaviour {
     [SerializeField] LineChart performanceComparisonChart; 
     [SerializeField] LineChart gridOptimalParameterChart;
     [SerializeField] LineChart quadtreeOptimalParameterChart;
+    [SerializeField] LineChart gridDistanceChecksChart;
+    [SerializeField] LineChart quadtreeDistanceChecksChart;
     
-    [Header("Chart Toggles")]
-    [SerializeField] bool showBarChart = true;
-    [SerializeField] bool showScatterChart = true;
-    [SerializeField] bool showPerformanceComparison = true;
-    [SerializeField] bool showGridOptimal = true;
-    [SerializeField] bool showQuadtreeOptimal = true;
+    [Header("Parameter Impact Charts")]
+    [SerializeField] LineChart gridParameterImpactChart;
+// this is a test comment
+    [SerializeField] LineChart quadtreeParameterImpactChart;
 
     [Header("Save Settings")]
     [SerializeField] string saveDirectory = "Assets/Scripts/Results/Graphs";
@@ -31,7 +30,6 @@ public class Graph : MonoBehaviour {
     List<ExperimentRecord> experimentRecords;
     
     void Start() {
-
         fileDir = Application.dataPath + "/Scripts/Results";
         resultsPath = $"{fileDir}/ExperimentResults.csv";
         experimentRecords = getCsvData();
@@ -40,47 +38,28 @@ public class Graph : MonoBehaviour {
             Directory.CreateDirectory(saveDirectory);
         }
         
-        // 1. Generate the charts
-        if (showBarChart && barChart != null) {
-            barChart.AnimationEnable(false);
-            barChart.gameObject.SetActive(true);
-            generatePerformanceBar(barChart, "Optimal Averages", "Averages across the optimal settings for various map sizes");
-        } else if (barChart != null) {
-            barChart.gameObject.SetActive(false);
-        }
+        // Generate charts if their references are set
+        TryGenerate(barChart, generatePerformanceBar);
+        TryGenerate(scatterChart, generatePerformanceScatter);
+        TryGenerate(performanceComparisonChart, generatePerformanceComparisonLine);
+        
+        TryGenerate(gridOptimalParameterChart, chart => generateOptimalParameterChart(
+            chart, "Uniform Grid: Optimal Cell Size", "Number of Boids vs Optimal Cell Size", SearchAlgos.UNIFORMGRID, "Optimal Cell Size"));
+            
+        TryGenerate(quadtreeOptimalParameterChart, chart => generateOptimalParameterChart(
+            chart, "Quadtree: Optimal Leaf Capacity", "Number of Boids vs Optimal Leaf Capacity", SearchAlgos.QUADTREE, "Optimal Leaf Capacity"));
 
-        if (showScatterChart && scatterChart != null) {
-            scatterChart.gameObject.SetActive(true);
-            scatterChart.AnimationEnable(false);
-            generatePerformanceScatter(scatterChart, "Scatter Chart", "TEST");
-        } else if (scatterChart != null) {
-            scatterChart.gameObject.SetActive(false);
-        }
+        TryGenerate(gridDistanceChecksChart, chart => generateDistanceChecksChart(
+            chart, "Uniform Grid: Average Checks Per Boid", "Number of Boids vs Average Checks", SearchAlgos.UNIFORMGRID));
+            
+        TryGenerate(quadtreeDistanceChecksChart, chart => generateDistanceChecksChart(
+            chart, "Quadtree: Average Checks Per Boid", "Number of Boids vs Average Checks", SearchAlgos.QUADTREE));
 
-        if (showPerformanceComparison && performanceComparisonChart != null) {
-            performanceComparisonChart.gameObject.SetActive(true);
-            performanceComparisonChart.AnimationEnable(false);
-            generatePerformanceComparisonLine(performanceComparisonChart, "Algorithm Performance", "Number of Boids vs Average Total MS");
-        } else if (performanceComparisonChart != null) {
-            performanceComparisonChart.gameObject.SetActive(false);
-        }
+        TryGenerate(gridParameterImpactChart, chart => generateParameterImpactChart(
+            chart, "Uniform Grid: Parameter Impact", "Cell Size vs Execution Time", SearchAlgos.UNIFORMGRID, "Cell Size"));
 
-        if (showGridOptimal && gridOptimalParameterChart != null) {
-            gridOptimalParameterChart.gameObject.SetActive(true);
-            gridOptimalParameterChart.AnimationEnable(false);
-
-            generateGridOptimalParameterByBoidsLine(gridOptimalParameterChart, "Uniform Grid: Optimal Cell Size", "Number of Boids vs Optimal Cell Size");
-        } else if (gridOptimalParameterChart != null) {
-            gridOptimalParameterChart.gameObject.SetActive(false);
-        }
-
-        if (showQuadtreeOptimal && quadtreeOptimalParameterChart != null) {
-            quadtreeOptimalParameterChart.gameObject.SetActive(true);
-            quadtreeOptimalParameterChart.AnimationEnable(false);
-            generateQuadtreeOptimalParameterByBoidsLine(quadtreeOptimalParameterChart, "Quadtree: Optimal Leaf Capacity", "Number of Boids vs Optimal Leaf Capacity");
-        } else if (quadtreeOptimalParameterChart != null) {
-            quadtreeOptimalParameterChart.gameObject.SetActive(false);
-        }
+        TryGenerate(quadtreeParameterImpactChart, chart => generateParameterImpactChart(
+            chart, "Quadtree: Parameter Impact", "Leaf Capacity vs Execution Time", SearchAlgos.QUADTREE, "Leaf Capacity"));
     }
 
     List<ExperimentRecord> getCsvData() {
@@ -92,65 +71,92 @@ public class Graph : MonoBehaviour {
         return records;
     }
 
-    void addTitleToChart(BaseChart chart, string title, string subTitle) {
+    // --- Helpers ---
+
+    void TryGenerate<T>(T chart, System.Action<T> generateAction) where T : BaseChart {
+        if (chart == null) return;
+        
+        chart.gameObject.SetActive(true);
+        chart.AnimationEnable(false);
+        generateAction(chart);
+    }
+
+    Dictionary<int, ExperimentRecord> GetOptimalRecords(SearchAlgos algo) {
+        Dictionary<int, ExperimentRecord> optimalRecords = new Dictionary<int, ExperimentRecord>();
+        
+        foreach (ExperimentRecord record in experimentRecords) {
+            if (record.searchAlgo != algo) continue;
+
+            int boids = record.numBoids;
+            if (!optimalRecords.ContainsKey(boids) || record.averageTotalMS < optimalRecords[boids].averageTotalMS) {
+                optimalRecords[boids] = record;
+            }
+        }
+        return optimalRecords;
+    }
+
+    void SetupChartBasic(BaseChart chart, string title, string subTitle) {
+        chart.RemoveData(); // Completely removes all existing series and data from the prefab
         Title titleComponent = chart.EnsureChartComponent<Title>();
         titleComponent.show = true;
         titleComponent.text = title;
         titleComponent.subText = subTitle;
     }
 
-    void enableLegend(BaseChart chart) {
+    void SetupLineChart(LineChart chart, string title, string subTitle, string xAxisName, string yAxisName, string tooltipFormatter) {
+        SetupChartBasic(chart, title, subTitle);
+        
         Legend legend = chart.EnsureChartComponent<Legend>();
         legend.show = true;
         legend.location.align = Location.Align.TopRight;
+
+        XAxis xAxis = chart.EnsureChartComponent<XAxis>();
+        xAxis.type = Axis.AxisType.Value;
+        xAxis.axisName.show = true;
+        xAxis.axisName.name = xAxisName;
+
+        YAxis yAxis = chart.EnsureChartComponent<YAxis>();
+        yAxis.type = Axis.AxisType.Value;
+        yAxis.axisName.show = true;
+        yAxis.axisName.name = yAxisName;
+
+        Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
+        tooltip.show = true;
+        tooltip.itemFormatter = tooltipFormatter;
     }
-    
-    void generatePerformanceBar(BarChart barChart, string title, string subTitle) {
-        barChart.ClearData();
-        addTitleToChart(barChart, title, subTitle);
+
+    // --- Generators ---
+
+    void generatePerformanceBar(BarChart chart) {
+        SetupChartBasic(chart, "Optimal Averages", "Averages across the optimal settings for various map sizes");
         
-        Dictionary<(SearchAlgos, float), float> minTimes = new Dictionary<(SearchAlgos, float), float>();
+        chart.AddSerie<Bar>("Optimal Averages"); // Explicitly add the series after wiping
         
-        foreach(ExperimentRecord run in experimentRecords) {
-            (SearchAlgos, float) key = (run.searchAlgo, run.numBoids);
-            if(!minTimes.ContainsKey(key)) {
-                minTimes[key] = run.averageTotalMS;
-            } else if (run.averageTotalMS < minTimes[key]) {
-                minTimes[key] = run.averageTotalMS;
-            }
-        }
-        
-        Dictionary<SearchAlgos, List<float>> algoOptimalTimes = new Dictionary<SearchAlgos, List<float>>();
-        
-        foreach(KeyValuePair<(SearchAlgos, float), float> kvp in minTimes) {
-            SearchAlgos algo = kvp.Key.Item1;
-            if(!algoOptimalTimes.ContainsKey(algo)) {
-                algoOptimalTimes[algo] = new List<float>();
-            }
-            algoOptimalTimes[algo].Add(kvp.Value);
-        }
-        
-        foreach(KeyValuePair<SearchAlgos, List<float>> kvp in algoOptimalTimes) {
+        // Loop over the specific search algorithms to find the optimal averages
+        foreach (SearchAlgos algo in System.Enum.GetValues(typeof(SearchAlgos))) {
+            Dictionary<int, ExperimentRecord> optimalRecords = GetOptimalRecords(algo);
+            if (optimalRecords.Count == 0) continue;
+
             float sum = 0f;
-            foreach(float time in kvp.Value) {
-                sum += time;
+            foreach (ExperimentRecord record in optimalRecords.Values) {
+                sum += record.averageTotalMS;
             }
-            float averageOptimalMS = sum / kvp.Value.Count;
+            float averageOptimalMS = sum / optimalRecords.Count;
             
-            barChart.AddXAxisData("" + kvp.Key);
-            barChart.AddData(0, averageOptimalMS);
+            chart.AddXAxisData(algo.ToString());
+            chart.AddData(0, averageOptimalMS);
         }
     }
 
-    void generatePerformanceScatter(ScatterChart chart, string title, string subTitle) {
-        addTitleToChart(chart, title, subTitle);
-        enableLegend(chart);
+    void generatePerformanceScatter(ScatterChart chart) {
+        SetupChartBasic(chart, "Scatter Chart", "TEST");
         
-        Serie uniformGrid = chart.GetSerie(0);
-        uniformGrid.serieName = "Uniform Grid";
+        Legend legend = chart.EnsureChartComponent<Legend>();
+        legend.show = true;
+        legend.location.align = Location.Align.TopRight;
         
-        Serie quadTree = chart.GetSerie(1);
-        quadTree.serieName = "Quadtree";
+        chart.AddSerie<Scatter>("Uniform Grid"); // Explicitly add instead of using GetSerie
+        chart.AddSerie<Scatter>("Quadtree");
 
         XAxis xAxis = chart.EnsureChartComponent<XAxis>();
         xAxis.type = Axis.AxisType.Value;
@@ -166,148 +172,85 @@ public class Graph : MonoBehaviour {
         tooltip.show = true;
         tooltip.itemFormatter = "{a} <br/> Parameter Size: {c2} <br/> Density: {c0:f2} <br/> Total MS: {c1:f2}";
         
-        chart.ClearData();
-        
         foreach(ExperimentRecord record in experimentRecords) {
             int seriesIndex = record.searchAlgo == SearchAlgos.UNIFORMGRID ? 0 : 1;
             chart.AddData(seriesIndex, record.averageDensity, record.averageTotalMS, record.leafCapacityOrCellSize);
         }
     }
 
-    void generatePerformanceComparisonLine(LineChart chart, string title, string subTitle) {
-        addTitleToChart(chart, title, subTitle);
-        enableLegend(chart);
+    void generatePerformanceComparisonLine(LineChart chart) {
+        SetupLineChart(chart, "Algorithm Performance", "Number of Boids vs Average Total MS", "Number of Boids", "Average Total MS", "{a} <br/> Boids: {c0} <br/> Time: {c1:f2} ms");
 
-        chart.RemoveData();
         chart.AddSerie<Line>("Uniform Grid");
         chart.AddSerie<Line>("Quadtree");
         chart.AddSerie<Line>("Brute Force");
 
-        XAxis xAxis = chart.EnsureChartComponent<XAxis>();
-        xAxis.type = Axis.AxisType.Value; 
-        xAxis.axisName.show = true;
-        xAxis.axisName.name = "Number of Boids";
+        Dictionary<int, ExperimentRecord> gridBest = GetOptimalRecords(SearchAlgos.UNIFORMGRID);
+        Dictionary<int, ExperimentRecord> qtBest = GetOptimalRecords(SearchAlgos.QUADTREE);
+        Dictionary<int, ExperimentRecord> bfBest = GetOptimalRecords(SearchAlgos.BF);
 
-        YAxis yAxis = chart.EnsureChartComponent<YAxis>();
-        yAxis.type = Axis.AxisType.Value;
-        yAxis.axisName.show = true;
-        yAxis.axisName.name = "Average Total MS";
+        HashSet<int> allBoids = new HashSet<int>(gridBest.Keys);
+        allBoids.UnionWith(qtBest.Keys);
+        allBoids.UnionWith(bfBest.Keys);
 
-        Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
-        tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Boids: {c0} <br/> Time: {c1:f2} ms";
-
-        Dictionary<int, float> gridBest = new Dictionary<int, float>();
-        Dictionary<int, float> qtBest = new Dictionary<int, float>();
-        Dictionary<int, float> bfTimes = new Dictionary<int, float>();
-
-        foreach(ExperimentRecord record in experimentRecords) {
-            int boids = record.numBoids;
-            
-            if (record.searchAlgo == SearchAlgos.UNIFORMGRID) {
-                if (!gridBest.ContainsKey(boids) || record.averageTotalMS < gridBest[boids])
-                    gridBest[boids] = record.averageTotalMS;
-            } 
-            else if (record.searchAlgo == SearchAlgos.QUADTREE) {
-                if (!qtBest.ContainsKey(boids) || record.averageTotalMS < qtBest[boids])
-                    qtBest[boids] = record.averageTotalMS;
-            } 
-            else if (record.searchAlgo == SearchAlgos.BF) {
-                bfTimes[boids] = record.averageTotalMS;
-            }
-        }
-
-        List<int> sortedBoids = bfTimes.Keys.ToList();
+        List<int> sortedBoids = allBoids.ToList();
         sortedBoids.Sort();
 
         foreach(int boids in sortedBoids) {
-            chart.AddData(0, boids, gridBest.ContainsKey(boids) ? gridBest[boids] : 0); 
-            chart.AddData(1, boids, qtBest.ContainsKey(boids) ? qtBest[boids] : 0); 
-            chart.AddData(2, boids, bfTimes.ContainsKey(boids) ? bfTimes[boids] : 0); 
+            chart.AddData(0, boids, gridBest.ContainsKey(boids) ? gridBest[boids].averageTotalMS : 0); 
+            chart.AddData(1, boids, qtBest.ContainsKey(boids) ? qtBest[boids].averageTotalMS : 0); 
+            chart.AddData(2, boids, bfBest.ContainsKey(boids) ? bfBest[boids].averageTotalMS : 0); 
         }
     }
 
-    void generateGridOptimalParameterByBoidsLine(LineChart chart, string title, string subTitle) {
-        addTitleToChart(chart, title, subTitle);
-        enableLegend(chart);
+    void generateOptimalParameterChart(LineChart chart, string title, string subTitle, SearchAlgos algo, string yAxisName) {
+        string paramType = algo == SearchAlgos.UNIFORMGRID ? "Size" : "Capacity";
+        SetupLineChart(chart, title, subTitle, "Number of Boids", yAxisName, "{a} <br/> Boids: {c0} <br/> Optimal " + paramType + ": {c1}");
+        
+        string serieName = algo == SearchAlgos.UNIFORMGRID ? "Uniform Grid" : "Quadtree";
+        chart.AddSerie<Line>(serieName);
 
-        chart.RemoveData();
-        chart.AddSerie<Line>("Uniform Grid");
-
-        XAxis xAxis = chart.EnsureChartComponent<XAxis>();
-        xAxis.type = Axis.AxisType.Value; 
-        xAxis.axisName.show = true;
-        xAxis.axisName.name = "Number of Boids";
-
-        YAxis yAxis = chart.EnsureChartComponent<YAxis>();
-        yAxis.type = Axis.AxisType.Value;
-        yAxis.axisName.show = true;
-        yAxis.axisName.name = "Optimal Cell Size";
-
-        Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
-        tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Boids: {c0} <br/> Optimal Size: {c1}";
-
-        Dictionary<int, float> optimalSizes = new Dictionary<int, float>();
-        Dictionary<int, float> lowestTimes = new Dictionary<int, float>();
-
-        foreach(ExperimentRecord record in experimentRecords) {
-            if(record.searchAlgo != SearchAlgos.UNIFORMGRID) continue;
-
-            int boids = record.numBoids;
-            if(!lowestTimes.ContainsKey(boids) || record.averageTotalMS < lowestTimes[boids]) {
-                lowestTimes[boids] = record.averageTotalMS;
-                optimalSizes[boids] = record.leafCapacityOrCellSize;
-            }
-        }
-
-        List<int> sortedBoids = optimalSizes.Keys.ToList();
+        Dictionary<int, ExperimentRecord> optimalRecords = GetOptimalRecords(algo);
+        List<int> sortedBoids = optimalRecords.Keys.ToList();
         sortedBoids.Sort();
 
         foreach(int boids in sortedBoids) {
-            chart.AddData(0, boids, optimalSizes[boids]); 
+            chart.AddData(0, boids, optimalRecords[boids].leafCapacityOrCellSize); 
         }
     }
 
-    void generateQuadtreeOptimalParameterByBoidsLine(LineChart chart, string title, string subTitle) {
-        addTitleToChart(chart, title, subTitle);
-        enableLegend(chart);
+    void generateDistanceChecksChart(LineChart chart, string title, string subTitle, SearchAlgos algo) {
+        SetupLineChart(chart, title, subTitle, "Number of Boids", "Average Checks Per Boid", "{a} <br/> Boids: {c0} <br/> Checks: {c1:f2}");
+        
+        string serieName = algo == SearchAlgos.UNIFORMGRID ? "Uniform Grid" : "Quadtree";
+        chart.AddSerie<Line>(serieName);
 
-        chart.RemoveData();
-        chart.AddSerie<Line>("Quadtree");
-
-        XAxis xAxis = chart.EnsureChartComponent<XAxis>();
-        xAxis.type = Axis.AxisType.Value; 
-        xAxis.axisName.show = true;
-        xAxis.axisName.name = "Number of Boids";
-
-        YAxis yAxis = chart.EnsureChartComponent<YAxis>();
-        yAxis.type = Axis.AxisType.Value;
-        yAxis.axisName.show = true;
-        yAxis.axisName.name = "Optimal Leaf Capacity";
-
-        Tooltip tooltip = chart.EnsureChartComponent<Tooltip>();
-        tooltip.show = true;
-        tooltip.itemFormatter = "{a} <br/> Boids: {c0} <br/> Optimal Capacity: {c1}";
-
-        Dictionary<int, float> optimalCapacities = new Dictionary<int, float>();
-        Dictionary<int, float> lowestTimes = new Dictionary<int, float>();
-
-        foreach(ExperimentRecord record in experimentRecords) {
-            if(record.searchAlgo != SearchAlgos.QUADTREE) continue;
-
-            int boids = record.numBoids;
-            if(!lowestTimes.ContainsKey(boids) || record.averageTotalMS < lowestTimes[boids]) {
-                lowestTimes[boids] = record.averageTotalMS;
-                optimalCapacities[boids] = record.leafCapacityOrCellSize;
-            }
-        }
-
-        List<int> sortedBoids = optimalCapacities.Keys.ToList();
+        Dictionary<int, ExperimentRecord> optimalRecords = GetOptimalRecords(algo);
+        List<int> sortedBoids = optimalRecords.Keys.ToList();
         sortedBoids.Sort();
 
         foreach(int boids in sortedBoids) {
-            chart.AddData(0, boids, optimalCapacities[boids]); 
+            chart.AddData(0, boids, optimalRecords[boids].averageChecksPerBoid); 
         }
+    }
+
+    void generateParameterImpactChart(LineChart chart, string title, string subTitle, SearchAlgos algo, string xAxisName) {
+        int maxBoids = experimentRecords.Max(r => r.numBoids);
+        
+        SetupLineChart(chart, title, subTitle + $" (High-Density Stress Test: {maxBoids} Boids)", xAxisName, "Average Total MS", "{a} <br/> " + xAxisName + ": {c0} <br/> Time: {c1:f2} ms");
+
+        var highestDensityRecords = experimentRecords
+            .Where(r => r.searchAlgo == algo && r.numBoids == maxBoids)
+            .OrderBy(r => r.leafCapacityOrCellSize)
+            .ToList();
+
+        if (highestDensityRecords.Count == 0) return;
+
+        string serieName = $"{maxBoids} Boids";
+        chart.AddSerie<Line>(serieName);
+
+        foreach (var record in highestDensityRecords) {
+            chart.AddData(0, record.leafCapacityOrCellSize, record.averageTotalMS);
+        }x
     }
 }

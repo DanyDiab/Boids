@@ -15,7 +15,7 @@ MonoBehaviour:
   numBoids: 200
   simBoundRadius: 100
   currSearchAlgo: 2
-  cellSize: 8
+  cellSize: 5
   leafCapacity: 10
   gizmoStruct:
     permiterColor: {r: 0, g: 0, b: 0, a: 1}
@@ -27,8 +27,8 @@ MonoBehaviour:
     showNeighbors: 0
   isVisualizingSearch: 0
   targetBoidID: 0
-  highlightedNodeIndices: 000000000100000006000000080000001a000000
-  highlightedBoidIndices: 000000001b0000003a0000004a0000005200000073000000a6000000090000000e000000270000006a00000093000000
+  highlightedNodeIndices: 000000000200000007000000260000002800000008000000110000002300000013000000
+  highlightedBoidIndices: 07000000100000004000000056000000580000005e0000006300000098000000a2000000ac00000004000000050000000b000000340000003e0000004600000059000000c000000000000000
   searchVisLerpSpeed: 2
   highlightCellColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   highlightBoidColor: {r: 0, g: 1, b: 0, a: 1}
