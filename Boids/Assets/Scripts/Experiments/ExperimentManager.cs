@@ -50,22 +50,30 @@ public class ExperimentManager : MonoBehaviour
     public delegate void ExperimentStart();
     public static event ExperimentStart OnExperimentStart;
     string fileDir;
+    [SerializeField] int seed;
+    [SerializeField] bool seedSet;
 
     int recordCount;
     void Start(){
         experimentRecords = new List<ExperimentRecord>();
         fileDir = Application.dataPath + "/Scripts/Results";
-        filePath = $"{fileDir}/ExperimentResults.csv";
+        filePath = $"{fileDir}/NewExperimentResults.csv";
         Directory.CreateDirectory(fileDir);
         recordCount = 0;
         currState = ExperimentState.IDLE;
         totalExperimentTime = warmupSeconds + warmupSeconds;
         interactionRadius = Mathf.Max(boidInfo.CohesionRadius,boidInfo.AlignmentRadius, boidInfo.SeparationRadius);
-        int seed = Random.Range(int.MinValue,int.MaxValue);
+        seed = getSeed();
         Random.InitState(seed);
         experimentSettings = new ExperimentSettings(simParams.NumBoids,seed,boidInfo);
         SimManager.OnSimStatsReady += recordData;
 
+    }
+
+    int getSeed() {
+        if(seedSet) return seed;
+        return Random.Range(int.MinValue,int.MaxValue);
+        
     }
 
     void Update() {

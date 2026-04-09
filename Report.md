@@ -33,6 +33,18 @@ Rather than using static numbers, I planned to dynamically test cell sizes and l
 
 In the context of this simulation, the input data consisted of the initial state of the boid agents. For each test run, the map boundary radius was kept static to maintain a constant area. Boids were instantiated with randomized starting positions and initial velocity vectors within these boundaries. Each boid was configured with a standardized three radii's, which were for the three different forces that act upon the boids, weights for the three forces, and a maximum speed. To control the simulation density, the number of spawned boids was dynamically scaled across different test iterations rather than altering the map dimensions.
 
+### Experimental Setup and Reproducibility
+
+To ensure the reproducibility of these results, all simulation parameters and initial constants were recorded in a configuration file located at `./Boids/Assets/Scripts/Results/ExperimentSettings.JSON`. This file defines the specific weights for flocking forces, boid radii, and speeds used across all experiments.
+
+The experiments were conducted using the following methodology:
+
+* **Environment:** All tests were executed in a standalone Windows build of the Unity Editor in version 6.3 LTS. The benchmarks were performed on a machine equipped with an Ryzen 5 3600 and 16GB of memory.
+* **Testing Loop:** For each density level, the simulation ran for a total of 15 seconds. The first five seconds allow for the simulation to 'warm up' and to allow for boids to cluster. Then the following ten seconds, key metrics were recorded. 
+* **Deterministic Initialization:** To ensure that spatial distributions were identical across different algorithm comparisons, a fixed integer seed was applied to the random number generator at the start of every test run. This provides a direct performance comparison by ensuring the "clusters" formed by the boids were identical for both the Uniform Grid and the Quadtree at any given density.
+
+**Note on Execution:** While these experiments rely on the Unity Engine, comprehensive instructions for navigating the project structure, configuring the environment, and executing the automated testing scripts can be found in the `./README.md` file located in the project root.
+
 ### Techniques and Implementation
 
 The core simulation relied on the three standard flocking behaviors: alignment, cohesion, and separation. Additionally, a fourth custom boundary force was implemented to gently steer boids back toward the center of the environment if they wandered beyond the designated area, ensuring the boids dont cause out of bounds errors. Despite having the fourth force added, I still ran into this problem, and to combat it, I padded the uniform grid, and quadtree to allow for boids to breifly leave the designated space. 
@@ -72,30 +84,40 @@ My initial hypothesis was that the optimal subdivision for both algorithms would
 
 For the uniform grid, the optimal cell size was unaffected by density. Instead, it was always precisely half of the boids' interaction radius (which is the maximum of the three radii acting on the boids). Regardless of how much the density increased, keeping this static cell size yielded the best performance.
 
-![Uniform Grid: Optimal Cell Size](./graphs/UniformGridOptimal.png)
+![Uniform Grid: Parameter Impact](./Boids/Assets/Graphs/cellSizeImpact.png)
 
-This result occurred because the grid's performance strictly improved as the cell size decreased, effectively filtering out more boids and minimizing unnecessary distance checks. However, half the interaction radius represents the mathematical floor for this specific grid implementation. Because the algorithm is hardcoded to query only a boid's current cell and its 8 immediate neighbors (a 3x3 grid space), shrinking the cell size any further would mean this 9-cell search area no longer fully covers the boid's maximum interaction radius. This would cause the simulation to drop valid neighbors and break flocking behaviors. Therefore, the optimal cell size was not a balancing act of competing performance costs, but rather the absolute tightest spatial subdivision the algorithm could support without compromising the correctness of the simulation.
+As shown in the parameter impact stress test above, the uniform grid does not suffer from a computational time trade-off as cell size decreases. Instead, execution time strictly improves until it hits the hardcoded mathematical floor of the 3x3 search area. Because the algorithm is built to query only a boid's current cell and its 8 immediate neighbors, shrinking the cell size any further would mean this 9-cell search area no longer fully covers the boid's maximum interaction radius. This would cause the simulation to drop valid neighbors and break flocking behaviors. This demonstrates that the grid's parameter tuning is highly predictable under high densities, finding its optimal state at the absolute tightest spatial subdivision the algorithm can support without compromising correctness.
 
+However, it is important to acknowledge that this CPU optimization comes with an inherent memory trade-off. As the cell size shrinks, the total number of cells required to cover the map increases quadratically, requiring larger array allocations. While my data collection methodology strictly isolated execution time (MS) and did not track specific memory consumption metrics to provide exact byte counts, the theoretical cost remains clear: achieving the absolute fastest query times with the uniform grid requires sacrificing a larger memory footprint to store the finer spatial subdivisions.
 
 ### QuadTree Analysis
 
 On the other hand, the quadtree's optimal leaf capacity was affected by density, though the relationship was not linear. While the optimal leaf capacity generally increased as the simulation became denser, there were significant fluctuations in the data. 
 
-![Quadtree: Optimal Leaf Capacity](./graphs/QuadTreeOptimal.png)
-
 These fluctuations can be attributed to the inherent computational trade-offs of the Quadtree structure. The efficiency of the tree is a balancing act between two distinct computational costs:
 
 * **Traversal Time:** Increasing the leaf capacity results in a shallower tree. A shallower tree requires fewer recursive subdivisions, making it computationally cheaper to traverse.
-
 * **Distance Checks:** However, a higher leaf capacity means more boids occupy a single leaf. Because boids within the same leaf must check distances against one another, this increases the local computational load.
 
-Conversely, decreasing the leaf capacity reduces the number of distance checks per leaf but creates a deeper, denser tree that requires more CPU cycles to traverse. At higher densities, these competiting trade-offs between minimizing traversal depth and minimizing local distance checks caused the optimal leaf capacity to fluctuate rather than scale linearly.
+Conversely, decreasing the leaf capacity reduces the number of distance checks per leaf but creates a deeper, denser tree that requires more CPU cycles to traverse. 
 
-Despite these fluctuations, the distance check data shows that the quadtree is highly effective at culling local interactions compared to a brute-force approach. 
+![Quadtree: Parameter Impact](./Boids/Assets/Graphs/LeafCapacityImpact.png)
+
+Unlike the predictable scaling of the uniform grid, the quadtree is highly sensitive to parameter tuning. The stress test above reveals a U-shaped performance penalty. If the capacity is too high, the simulation bogs down in local distance checks, if it is too low, the CPU is overwhelmed by the traversal overhead of a deep tree. Resulting in an idle CPU, as it awaits grabbing memory from the heap.
 
 Even though I didn't record the exact time difference between rebuilding the tree and traversing it, the performance graphs strongly point to traversal as the main bottleneck. Looking at the Algorithm Performance graph, the quadtree's execution time is practically zero at low densities (under 500 boids). This shows that the baseline cost of clearing and rebuilding the memory-pooled tree every frame is very small. 
 
-However, as the density increases, the execution time scales non-linearly. Because inserting boids into a pre-allocated tree generally scales at $O(n \log n)$, this massive spike in time doesn't match the cost of just rebuilding the structure. Instead, it reflects the huge increase in mathematical boundary checks needed to traverse the tree when boids are clustered closely together. By looking at the minimal baseline rebuild cost alongside the low number of agent-to-agent distance checks shown above, it becomes clear that navigating the tree's bounds is the real performance bottleneck, rather than reconstructing the tree itself.
+However, as the density increases, the execution time scales non-linearly. Because inserting boids into a pre-allocated tree generally scales at $O(n \log n)$, this massive spike in time doesn't match the cost of just rebuilding the structure. Instead, it reflects the huge increase in mathematical boundary checks needed to traverse the tree when boids are clustered closely together. By looking at the minimal baseline rebuild cost alongside the low number of agent-to-agent distance checks, it becomes clear that navigating the tree's bounds is the real performance bottleneck, rather than reconstructing the tree itself.
+
+### Theoretical Culling Limits
+
+To push the analysis further, I isolated the data to determine which data structure is mathematically capable of the tightest spatial culling, regardless of execution time. The graph below plots the absolute lowest number of distance checks each algorithm can achieve at various densities. 
+
+![Theoretical Best Culling: Number of Boids vs Absolute Lowest Checks](./Boids/Assets/Graphs/BestCulling.png)
+
+This theoretical limit reveals a distinct density threshold at approximately 250 boids. Below this threshold, the simulation is sparse. The quadtree is highly efficient at discarding massive quadrants of empty space, allowing isolated boids to perform fewer checks than the uniform grid's rigid 9-cell query. 
+
+However, as the density surpasses 250 boids, the uniform grid overtakes the quadtree. In dense clusters, the quadtree's fixed spatial boundaries become a liability. Boids near the edge of a quadrant must query adjacent leaves, resulting in false-positive checks against boids on the far side of those neighboring partitions. The uniform grid completely avoids this "boundary spillover" penalty because its perfectly scaled 9-cell search effectively generates a custom, localized bounding box tightly centered around the querying boid, making it mathematically superior at culling high-density environments.
 
 ## Conclusion and Future Work
 

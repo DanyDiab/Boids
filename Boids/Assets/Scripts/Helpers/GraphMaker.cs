@@ -14,12 +14,13 @@ public class Graph : MonoBehaviour {
     [SerializeField] LineChart performanceComparisonChart; 
     [SerializeField] LineChart gridOptimalParameterChart;
     [SerializeField] LineChart quadtreeOptimalParameterChart;
-    [SerializeField] LineChart gridDistanceChecksChart;
-    [SerializeField] LineChart quadtreeDistanceChecksChart;
+    
+    [Header("Combined Analytical Charts")]
+    [SerializeField] LineChart combinedDistanceChecksChart;
+    [SerializeField] LineChart lowestChecksChart; // New chart for theoretical lowest checks
     
     [Header("Parameter Impact Charts")]
     [SerializeField] LineChart gridParameterImpactChart;
-// this is a test comment
     [SerializeField] LineChart quadtreeParameterImpactChart;
 
     [Header("Save Settings")]
@@ -49,12 +50,13 @@ public class Graph : MonoBehaviour {
         TryGenerate(quadtreeOptimalParameterChart, chart => generateOptimalParameterChart(
             chart, "Quadtree: Optimal Leaf Capacity", "Number of Boids vs Optimal Leaf Capacity", SearchAlgos.QUADTREE, "Optimal Leaf Capacity"));
 
-        TryGenerate(gridDistanceChecksChart, chart => generateDistanceChecksChart(
-            chart, "Uniform Grid: Average Checks Per Boid", "Number of Boids vs Average Checks", SearchAlgos.UNIFORMGRID));
-            
-        TryGenerate(quadtreeDistanceChecksChart, chart => generateDistanceChecksChart(
-            chart, "Quadtree: Average Checks Per Boid", "Number of Boids vs Average Checks", SearchAlgos.QUADTREE));
+        // Generate the combined distance checks chart (based on fastest execution time)
+        TryGenerate(combinedDistanceChecksChart, generateCombinedDistanceChecksChart);
 
+        // Generate the new theoretical lowest checks chart (based on absolute fewest checks)
+        TryGenerate(lowestChecksChart, generateLowestChecksChart);
+
+        // Generate separated parameter impact charts
         TryGenerate(gridParameterImpactChart, chart => generateParameterImpactChart(
             chart, "Uniform Grid: Parameter Impact", "Cell Size vs Execution Time", SearchAlgos.UNIFORMGRID, "Cell Size"));
 
@@ -89,6 +91,21 @@ public class Graph : MonoBehaviour {
 
             int boids = record.numBoids;
             if (!optimalRecords.ContainsKey(boids) || record.averageTotalMS < optimalRecords[boids].averageTotalMS) {
+                optimalRecords[boids] = record;
+            }
+        }
+        return optimalRecords;
+    }
+
+    // New helper method to find the configuration with the absolute lowest distance checks
+    Dictionary<int, ExperimentRecord> GetRecordsWithLowestChecks(SearchAlgos algo) {
+        Dictionary<int, ExperimentRecord> optimalRecords = new Dictionary<int, ExperimentRecord>();
+        
+        foreach (ExperimentRecord record in experimentRecords) {
+            if (record.searchAlgo != algo) continue;
+
+            int boids = record.numBoids;
+            if (!optimalRecords.ContainsKey(boids) || record.averageChecksPerBoid < optimalRecords[boids].averageChecksPerBoid) {
                 optimalRecords[boids] = record;
             }
         }
@@ -219,18 +236,55 @@ public class Graph : MonoBehaviour {
         }
     }
 
-    void generateDistanceChecksChart(LineChart chart, string title, string subTitle, SearchAlgos algo) {
-        SetupLineChart(chart, title, subTitle, "Number of Boids", "Average Checks Per Boid", "{a} <br/> Boids: {c0} <br/> Checks: {c1:f2}");
+    void generateCombinedDistanceChecksChart(LineChart chart) {
+        SetupLineChart(chart, "Algorithmic Efficiency (Fastest Configurations)", "Number of Boids vs Average Checks Per Boid", "Number of Boids", "Average Checks Per Boid", "{a} <br/> Boids: {c0} <br/> Checks: {c1:f2}");
         
-        string serieName = algo == SearchAlgos.UNIFORMGRID ? "Uniform Grid" : "Quadtree";
-        chart.AddSerie<Line>(serieName);
+        chart.AddSerie<Line>("Uniform Grid");
+        chart.AddSerie<Line>("Quadtree");
+        chart.AddSerie<Line>("Brute Force");
 
-        Dictionary<int, ExperimentRecord> optimalRecords = GetOptimalRecords(algo);
-        List<int> sortedBoids = optimalRecords.Keys.ToList();
+        Dictionary<int, ExperimentRecord> gridBest = GetOptimalRecords(SearchAlgos.UNIFORMGRID);
+        Dictionary<int, ExperimentRecord> qtBest = GetOptimalRecords(SearchAlgos.QUADTREE);
+        Dictionary<int, ExperimentRecord> bfBest = GetOptimalRecords(SearchAlgos.BF);
+
+        HashSet<int> allBoids = new HashSet<int>(gridBest.Keys);
+        allBoids.UnionWith(qtBest.Keys);
+        allBoids.UnionWith(bfBest.Keys);
+
+        List<int> sortedBoids = allBoids.ToList();
         sortedBoids.Sort();
 
         foreach(int boids in sortedBoids) {
-            chart.AddData(0, boids, optimalRecords[boids].averageChecksPerBoid); 
+            chart.AddData(0, boids, gridBest.ContainsKey(boids) ? gridBest[boids].averageChecksPerBoid : 0); 
+            chart.AddData(1, boids, qtBest.ContainsKey(boids) ? qtBest[boids].averageChecksPerBoid : 0); 
+            chart.AddData(2, boids, bfBest.ContainsKey(boids) ? bfBest[boids].averageChecksPerBoid : 0); 
+        }
+    }
+
+    // New Generator for Theoretical Lowest Checks
+    void generateLowestChecksChart(LineChart chart) {
+        SetupLineChart(chart, "Theoretical Best Culling", "Number of Boids vs Absolute Lowest Checks", "Number of Boids", "Average Checks Per Boid", "{a} <br/> Boids: {c0} <br/> Checks: {c1:f2}");
+        
+        chart.AddSerie<Line>("Uniform Grid");
+        chart.AddSerie<Line>("Quadtree");
+        chart.AddSerie<Line>("Brute Force");
+
+        // Uses the new GetRecordsWithLowestChecks method
+        Dictionary<int, ExperimentRecord> gridBest = GetRecordsWithLowestChecks(SearchAlgos.UNIFORMGRID);
+        Dictionary<int, ExperimentRecord> qtBest = GetRecordsWithLowestChecks(SearchAlgos.QUADTREE);
+        Dictionary<int, ExperimentRecord> bfBest = GetRecordsWithLowestChecks(SearchAlgos.BF);
+
+        HashSet<int> allBoids = new HashSet<int>(gridBest.Keys);
+        allBoids.UnionWith(qtBest.Keys);
+        allBoids.UnionWith(bfBest.Keys);
+
+        List<int> sortedBoids = allBoids.ToList();
+        sortedBoids.Sort();
+
+        foreach(int boids in sortedBoids) {
+            chart.AddData(0, boids, gridBest.ContainsKey(boids) ? gridBest[boids].averageChecksPerBoid : 0); 
+            chart.AddData(1, boids, qtBest.ContainsKey(boids) ? qtBest[boids].averageChecksPerBoid : 0); 
+            chart.AddData(2, boids, bfBest.ContainsKey(boids) ? bfBest[boids].averageChecksPerBoid : 0); 
         }
     }
 
