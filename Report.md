@@ -109,16 +109,6 @@ Even though I didn't record the exact time difference between rebuilding the tre
 
 However, as the density increases, the execution time scales non-linearly. Because inserting boids into a pre-allocated tree generally scales at $O(n \log n)$, this massive spike in time doesn't match the cost of just rebuilding the structure. Instead, it reflects the huge increase in mathematical boundary checks needed to traverse the tree when boids are clustered closely together. By looking at the minimal baseline rebuild cost alongside the low number of agent-to-agent distance checks, it becomes clear that navigating the tree's bounds is the real performance bottleneck, rather than reconstructing the tree itself.
 
-### Algorithmic Efficiency: Distance Checks
-
-![Algorithmic Efficiency: Number of Boids vs Average Checks Per Boid](./Graphs/AlgorithmicEfficiency.png)
-
-The graph above plots the average number of distance checks per boid using the configurations that provide the absolute best spatial culling (the fewest possible distance checks), compared to a brute-force approach. While both spatial partitioning structures successfully flatten the exponential brute-force curve, the data reveals that the uniform grid is mathematically superior at culling the space at high densities.
-
-Initially, it could be assumed that the quadtree's recursive subdivision would create tighter search spaces. However, the quadtree relies on fixed spatial boundaries. As density increases and boids cluster together, boids near the edge of a quadrant are forced to query adjacent leaves to guarantee no interactions are missed. This boundary spillover means the quadtree inevitably performs false-positive checks against boids on the far side of those neighboring partitions, even when configured for its absolute tightest leaf capacity.
-
-The uniform grid completely avoids this boundary penalty. Because its optimal cell size is perfectly scaled to half the maximum interaction radius, the 9-cell search effectively generates a custom, localized bounding box tightly centered around the querying boid. This allows the uniform grid to consistently filter out false-positive interactions better than the quadtree in dense environments.
-
 ### Theoretical Culling Limits
 
 To push the analysis further, I isolated the data to determine which data structure is mathematically capable of the tightest spatial culling, regardless of execution time. The graph below plots the absolute lowest number of distance checks each algorithm can achieve at various densities. 
@@ -146,3 +136,5 @@ A notable limitation in my data collection was the isolation of the boid-to-boid
 Kratz, Jakob, and Viktor Luthman. “Comparison of Spatial Partitioning Data Structures in Crowd Simulations.” DIVA, 2021, kth.diva-portal.org/smash/record.jsf?pid=diva2%3A1595833&dswid=2272. Accessed 28 Jan. 2026.
 
 Reynolds, Craig. “Craig Reynolds: Flocks, Herds, and Schools: A Distributed Behavioral Model.” Www.cs.toronto.edu, July 1987, www.cs.toronto.edu/~dt/siggraph97-course/cwr87/.
+
+This project was developed as part of the CSCI 4118 curriculum at Dalhousie University. I would like to thank Professor Christopher Whidden for guidance, and for this amazing course and course project!
